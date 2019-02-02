@@ -5,7 +5,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.View;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -18,6 +18,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "DMUI";
     private GLSurfaceView mGLSurfaceView;
+    private int angle;
+    private float x;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +30,16 @@ public class MainActivity extends AppCompatActivity {
         // 设置渲染器(后面会着重讲这个渲染器的类)
         mGLSurfaceView.setRenderer(new MyRenderer());
         // 设置渲染模式为连续模式(会以60fps的速度刷新)
-        mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         setContentView(mGLSurfaceView);
+        mGLSurfaceView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                angle = (angle + 90)% 360;
+                x = (x + 0.1f)%0.5f;
+                mGLSurfaceView.requestRender();
+            }
+        });
     }
 
     @Override
@@ -48,10 +58,13 @@ public class MainActivity extends AppCompatActivity {
         private int program;
         private int vPosition;
         private int uColor;
+        private int uMatrixLocation;
         /**
          * Float类型占4Byte
          */
         private static final int BYTES_PER_FLOAT = 4;
+
+        private float[] mModelMatrix = new float[4 * 4];
 
         /**
          * 获取图形的顶点
@@ -62,10 +75,10 @@ public class MainActivity extends AppCompatActivity {
          */
         private FloatBuffer getVertices() {
             float vertices[] = {
-                    -0.5f,   0.5f,
+                    -0.5f, 0.5f,
                     -0.5f, -0.5f,
-                    0.5f,  -0.5f,
-                    0.5f,  0.5f,
+                    0.5f, -0.5f,
+                    0.5f, 0.5f,
             };
 
             // 创建顶点坐标数据缓冲
@@ -77,70 +90,6 @@ public class MainActivity extends AppCompatActivity {
             vertexBuf.position(0);                          //设置缓冲区起始位置
 
             return vertexBuf;
-        }
-
-        private int uMatrixLocation;
-        /**
-         * 矩阵数组
-         */
-        private final float[] mProjectionMatrix = new float[]{
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-        };
-
-        /**
-         * 当GLSurfaceView中的Surface被创建的时候(界面显示)回调此方法，一般在这里做一些初始化
-         * @param gl10 1.0版本的OpenGL对象，这里用于兼容老版本，用处不大
-         * @param eglConfig egl的配置信息(GLSurfaceView会自动创建egl，这里可以先忽略)
-         */
-        @Override
-        public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
-            // 初始化着色器
-            // 基于顶点着色器与片元着色器创建程序
-            program = ShaderHelper.makeProgram(verticesShader, fragmentShader);
-            // 获取着色器中的属性引用id(传入的字符串就是我们着色器脚本中的属性名)
-            vPosition = GLES20.glGetAttribLocation(program, "vPosition");
-            uMatrixLocation = GLES20.glGetUniformLocation(program,"u_Matrix");
-            uColor = GLES20.glGetUniformLocation(program, "uColor");
-
-            // 设置clear color颜色RGBA(这里仅仅是设置清屏时GLES20.glClear()用的颜色值而不是执行清屏)
-            GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        }
-
-        /**
-         * 当GLSurfaceView中的Surface被改变的时候回调此方法(一般是大小变化)
-         * @param gl10 同onSurfaceCreated()
-         * @param width Surface的宽度
-         * @param height Surface的高度
-         */
-        @Override
-        public void onSurfaceChanged(GL10 gl10, int width, int height) {
-            // 边长比(>=1)，非宽高比
-            float aspectRatio = width > height ?
-                    (float) width / (float) height :
-                    (float) height / (float) width;
-
-            // 1. 矩阵数组
-            // 2. 结果矩阵起始的偏移量
-            // 3. left：x的最小值
-            // 4. right：x的最大值
-            // 5. bottom：y的最小值
-            // 6. top：y的最大值
-            // 7. near：z的最小值
-            // 8. far：z的最大值
-            if (width > height) {
-                // 横屏
-                Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f);
-            } else {
-                // 竖屏or正方形
-                Matrix.orthoM(mProjectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f);
-            }
-            // 更新u_Matrix的值，即更新矩阵数组
-            GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mProjectionMatrix, 0);
-            // 设置绘图的窗口(可以理解成在画布上划出一块区域来画图)
-            GLES20.glViewport(0,0,width,height);
         }
 
         // 顶点着色器的脚本
@@ -161,11 +110,57 @@ public class MainActivity extends AppCompatActivity {
                 + "   gl_FragColor = uColor;        \n" // 给此片元的填充色
                 + "}";
 
+        float[] colors = {
+                1f, 0f, 0f, 1f, // vertex 0 red
+                0f, 1f, 0f, 1f, // vertex 1 green
+                0f, 0f, 1f, 1f, // vertex 2 blue
+                1f, 0f, 1f, 1f, // vertex 3 magenta
+        };
+
+        /**
+         * 当GLSurfaceView中的Surface被创建的时候(界面显示)回调此方法，一般在这里做一些初始化
+         *
+         * @param gl10      1.0版本的OpenGL对象，这里用于兼容老版本，用处不大
+         * @param eglConfig egl的配置信息(GLSurfaceView会自动创建egl，这里可以先忽略)
+         */
+        @Override
+        public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
+            // 初始化着色器
+            // 基于顶点着色器与片元着色器创建程序
+            program = ShaderHelper.makeProgram(verticesShader, fragmentShader);
+            // 获取着色器中的属性引用id(传入的字符串就是我们着色器脚本中的属性名)
+            uMatrixLocation = GLES20.glGetUniformLocation(program, "u_Matrix");
+            vPosition = GLES20.glGetAttribLocation(program, "vPosition");
+            uColor = GLES20.glGetUniformLocation(program, "uColor");
+            // 设置clear color颜色RGBA(这里仅仅是设置清屏时GLES20.glClear()用的颜色值而不是执行清屏)
+            GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+
+        /**
+         * 当GLSurfaceView中的Surface被改变的时候回调此方法(一般是大小变化)
+         *
+         * @param gl10   同onSurfaceCreated()
+         * @param width  Surface的宽度
+         * @param height Surface的高度
+         */
+        @Override
+        public void onSurfaceChanged(GL10 gl10, int width, int height) {
+            // 设置绘图的窗口(可以理解成在画布上划出一块区域来画图)
+            GLES20.glViewport(0, 0, width, height);
+
+            float aspectRatio = width > height ?
+                    (float) width / (float) height :
+                    (float) height / (float) width;
+            Matrix.setIdentityM(mModelMatrix, 0);
+            Matrix.scaleM(mModelMatrix,0,1f, 1 / aspectRatio, 1f);
+        }
+
         /**
          * 当Surface需要绘制的时候回调此方法
          * 根据GLSurfaceView.setRenderMode()设置的渲染模式不同回调的策略也不同：
          * GLSurfaceView.RENDERMODE_CONTINUOUSLY : 固定一秒回调60次(60fps)
          * GLSurfaceView.RENDERMODE_WHEN_DIRTY   : 当调用GLSurfaceView.requestRender()之后回调一次
+         *
          * @param gl10 同onSurfaceCreated()
          */
         @Override
@@ -173,9 +168,12 @@ public class MainActivity extends AppCompatActivity {
             // 获取图形的顶点坐标
             FloatBuffer vertices = getVertices();
 
+//            Matrix.rotateM(mModelMatrix, 0, angle, 0.0f, 0.0f, 1.0f);
+//            Matrix.translateM(mModelMatrix,0,x,0,0);
+
+            GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
             // 清屏
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-
             // 使用某套shader程序
             GLES20.glUseProgram(program);
             // 为画笔指定顶点位置数据(vPosition)
@@ -184,38 +182,9 @@ public class MainActivity extends AppCompatActivity {
             GLES20.glEnableVertexAttribArray(vPosition);
             // 设置属性uColor(颜色 索引,R,G,B,A)
             GLES20.glUniform4f(uColor, 1.0f, 0.0f, 0.0f, 1.0f);
-            // 绘制
 //            GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 3);
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         }
     }
-
-//    /**
-//     * 顶点着色器
-//     */
-//    private static final String VERTEX_SHADER = "" +
-//            // vec4：4个分量的向量：x、y、z、w
-//            "attribute vec4 a_Position;\n" +
-//            "void main()\n" +
-//            "{\n" +
-//            // gl_Position：GL中默认定义的输出变量，决定了当前顶点的最终位置
-//            "    gl_Position = a_Position;\n" +
-//            // gl_PointSize：GL中默认定义的输出变量，决定了当前顶点的大小
-//            "    gl_PointSize = 40.0;\n" +
-//            "}";
-//
-//    /**
-//     * 片段着色器
-//     */
-//    private static final String FRAGMENT_SHADER = "" +
-//            // 定义所有浮点数据类型的默认精度；有lowp、mediump、highp 三种，但只有部分硬件支持片段着色器使用highp。(顶点着色器默认highp)
-//            "precision mediump float;\n" +
-//            "uniform mediump vec4 u_Color;\n" +
-//            "void main()\n" +
-//            "{\n" +
-//            // gl_FragColor：GL中默认定义的输出变量，决定了当前片段的最终颜色
-//            "    gl_FragColor = u_Color;\n" +
-//            "}";
-
 
 }
