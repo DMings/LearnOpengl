@@ -111,6 +111,17 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         return mHeight;
     }
 
+
+    private Run run;
+
+    public abstract static class Run{
+        public abstract void getData(ByteBuffer byteBuffer);
+    }
+
+    public void setRun(Run run) {
+        this.run = run;
+    }
+
     public ByteBuffer sendImage() {
         int width = this.mWidth;
         int height = this.mHeight;
@@ -121,7 +132,11 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         long start = System.nanoTime();
         GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,mRgbaBuf);
         long end = System.nanoTime();
-        Log.d("TryOpenGL", "glReadPixels: " + (end - start) + " > "+Thread.currentThread() + " width > "+width + " height > "+height );
+        float time = 1.0f * (end - start) / 1000000;
+        Log.d("TryOpenGL", "glReadPixels: " + time + " > "+Thread.currentThread() + " width > "+width + " height > "+height );
+        if(run != null){
+            run.getData(mRgbaBuf);
+        }
         return mRgbaBuf;
     }
 
@@ -129,7 +144,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         //设置背景颜色
-        GLES20.glClearColor(1f, 1f, 1f, 1f);
+        GLES20.glClearColor(1f, 0f, 0f, 1f);
         //编译
         final int vertexShaderId = ShaderHelper.compileVertexShader(ResReadUtils.readResource(this.mContext,R.raw.vertex_texture_shader));
         final int fragmentShaderId = ShaderHelper.compileFragmentShader(ResReadUtils.readResource(this.mContext,R.raw.fragment_texture_shader));
@@ -156,6 +171,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT,1);
         Matrix.rotateM(mModelMatrix, 0, 90, 0.0f, 0.0f, 1.0f);
         GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
         //使用程序片段
@@ -178,5 +194,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
 
         GLES20.glDisable(GLES20.GL_BLEND);
+
+        sendImage();
     }
 }

@@ -38,15 +38,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mGLSurfaceView.requestRender();
-                ByteBuffer byteBuffer = textureRenderer.sendImage();
-                Bitmap bp = Bitmap.createBitmap(textureRenderer.getWidth(), textureRenderer.getHeight(), Bitmap.Config.ARGB_8888);
-                bp.copyPixelsFromBuffer(byteBuffer);
-                Log.d("TryOpenGL", "Bitmap: " + " width > "+bp.getWidth() + " height > "+bp.getHeight() );
-                mIvShow.setImageBitmap(bp);
-                mIvShow.invalidate();
             }
         });
-        mGLSurfaceView.requestRender();
+        textureRenderer.setRun(new TextureRenderer.Run() {
+            @Override
+            public void getData(ByteBuffer byteBuffer) {
+                final Bitmap bp = Bitmap.createBitmap(textureRenderer.getWidth(), textureRenderer.getHeight(), Bitmap.Config.ARGB_8888);
+                bp.copyPixelsFromBuffer(byteBuffer);
+                Log.d("TryOpenGL", "Bitmap: " + " width > "+bp.getWidth() + " height > "+bp.getHeight() );
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mIvShow.setImageBitmap(bp);
+                        mIvShow.invalidate();
+                    }
+                });
+            }
+        });
     }
 
     @Override
