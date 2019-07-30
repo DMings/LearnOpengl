@@ -1,10 +1,14 @@
 package com.dming.testopengl;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+
+import java.nio.ByteBuffer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +30,20 @@ public class MainActivity extends AppCompatActivity {
         // 设置渲染模式为连续模式(会以60fps的速度刷新)
         mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         initBtnListener();
+
+        mRenderer.setRun(new TextureRenderer.Run() {
+            @Override
+            public void getData(ByteBuffer byteBuffer) {
+                byte[] bytes = byteBuffer.array();
+                DLog.i("byteBuffer[0]",Byte.toString(byteBuffer.get(0)));
+                DLog.i("bytes[0]",Byte.toString(bytes[0]));
+//                BitmapFactory.Options config = new BitmapFactory.Options();
+//                config.inPreferredConfig = Bitmap.Config.ARGB_8888;
+//                byte[] bytes = byteBuffer.array();
+//                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, config);
+                DLog.i("xxxx");
+            }
+        });
     }
 
     @Override
@@ -45,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                mRenderer.getHeight();
+                mRenderer.setGetImage();
                 mGLSurfaceView.requestRender();
             }
         });

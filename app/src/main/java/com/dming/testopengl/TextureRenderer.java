@@ -6,8 +6,6 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.util.Log;
-import android.view.SurfaceHolder;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -26,7 +24,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     private static final String TAG = "TextureRenderer";
 
-    private final FloatBuffer vertexBuffer, mTexVertexBuffer,mColorVertexBuffer;
+    private final FloatBuffer vertexBuffer, mTexVertexBuffer, mColorVertexBuffer;
 
     private final ShortBuffer mVertexIndexBuffer;
 
@@ -45,6 +43,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private ByteBuffer mRgbaBuf;
     private Bitmap mBitmap;
     private GLSurfaceView mGLSurfaceView;
+    private boolean getImage = false;
 
     // 镜像180
     /**
@@ -52,14 +51,23 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
      * (x,y,z)
      */
     private float[] POSITION_VERTEX = new float[]{
-            -0.5f, -0.5f, 0f,    //顶点坐标V0
-            0.5f, 0.5f, 0f,      //顶点坐标V1
-            -0.5f, 0.5f, 0f,     //顶点坐标V2
+            -1f, -1f, 0f,    //顶点坐标V0
+            1f, 1f, 0f,      //顶点坐标V1
+            -1f, 1f, 0f,     //顶点坐标V2
 
-            0.5f, -0.5f, 0f,     //顶点坐标V3
-            0.5f, 0.5f, 0f,      //顶点坐标V4
-            -0.5f, -0.5f, 0f     //顶点坐标V5
+            1f, -1f, 0f,     //顶点坐标V3
+            1f, 1f, 0f,      //顶点坐标V4
+            -1f, -1f, 0f     //顶点坐标V5
     };
+//    private float[] POSITION_VERTEX = new float[]{
+//            -0.5f, -0.5f, 0f,    //顶点坐标V0
+//            0.5f, 0.5f, 0f,      //顶点坐标V1
+//            -0.5f, 0.5f, 0f,     //顶点坐标V2
+//
+//            0.5f, -0.5f, 0f,     //顶点坐标V3
+//            0.5f, 0.5f, 0f,      //顶点坐标V4
+//            -0.5f, -0.5f, 0f     //顶点坐标V5
+//    };
 
     /**
      * 纹理坐标
@@ -97,7 +105,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             3, 4, 5   //V3,V4,V5 三个顶点组成一个三角形
     };
 
-    public TextureRenderer(Context context,GLSurfaceView glSurfaceView) {
+    public TextureRenderer(Context context, GLSurfaceView glSurfaceView) {
         this.mContext = context;
         this.mGLSurfaceView = glSurfaceView;
         //分配内存空间,每个浮点型占4字节空间
@@ -146,22 +154,30 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         this.run = run;
     }
 
-    public ByteBuffer sendImage() {
-        int width = this.mWidth;
-        int height = this.mHeight;
-        if (mRgbaBuf == null) {
-            mRgbaBuf = ByteBuffer.allocateDirect(width * height * 4);
+    public void setGetImage(){
+        getImage = true;
+    }
+
+    public void getImagePixels() {
+        if (getImage) {
+            DLog.i("getImagePixels>>>>>");
+            getImage = false;
+            int width = this.mWidth;
+            int height = this.mHeight;
+            if (mRgbaBuf == null) {
+                mRgbaBuf = ByteBuffer.allocateDirect(width * height * 4);
+            }
+            mRgbaBuf.position(0);
+            long start = System.nanoTime();
+            GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 4);
+            GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mRgbaBuf);
+            long end = System.nanoTime();
+            float time = 1.0f * (end - start) / 1000000;
+            DLog.d("glReadPixels: " + time + " > " + Thread.currentThread() + " width > " + width + " height > " + height);
+            if (run != null) {
+                run.getData(mRgbaBuf);
+            }
         }
-        mRgbaBuf.position(0);
-        long start = System.nanoTime();
-        GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mRgbaBuf);
-        long end = System.nanoTime();
-        float time = 1.0f * (end - start) / 1000000;
-        Log.d("TryOpenGL", "glReadPixels: " + time + " > " + Thread.currentThread() + " width > " + width + " height > " + height);
-        if (run != null) {
-            run.getData(mRgbaBuf);
-        }
-        return mRgbaBuf;
     }
 
 
@@ -197,14 +213,13 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 (float) width / (float) height :
                 (float) height / (float) width;
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.scaleM(mModelMatrix, 0, 1f, 1 / aspectRatio, 1f);
+//        Matrix.scaleM(mModelMatrix, 0, 1f, 1 / aspectRatio, 1f);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
 //        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-//        GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1);
 //        Matrix.rotateM(mModelMatrix, 0, 90, 0.0f, 0.0f, 1.0f);
         GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
         //使用程序片段
@@ -231,7 +246,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
 //        int err = GLES20.glGetError();
-
+        getImagePixels();
     }
 
 
