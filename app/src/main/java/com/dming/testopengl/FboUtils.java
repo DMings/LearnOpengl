@@ -36,7 +36,7 @@ public class FboUtils {
 
         // unbind
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
+//        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 
         mFrameBufferId = frameBuffer[0];

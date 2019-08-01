@@ -22,8 +22,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mGLSurfaceView = findViewById(R.id.gl_show);
         mIvShowTx = findViewById(R.id.iv_show_tx);
-        mGLSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        mGLSurfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
+//        mGLSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+//        mGLSurfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
         // 请求一个OpenGL ES 2.0兼容的上下文
         mGLSurfaceView.setEGLContextClientVersion(2);
         // 设置渲染器(后面会着重讲这个渲染器的类)
