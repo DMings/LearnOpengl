@@ -2,7 +2,7 @@
 precision mediump float;
 uniform sampler2D sampler;
 in vec2 vTexCoord;
-in vec4 ourColor;
+//in vec4 ourColor;
 out vec4 vFragColor;
 
 void main() {

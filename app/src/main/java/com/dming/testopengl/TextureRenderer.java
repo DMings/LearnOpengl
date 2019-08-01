@@ -24,7 +24,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     private static final String TAG = "TextureRenderer";
 
-    private final FloatBuffer vertexBuffer, mTexVertexBuffer, mColorVertexBuffer;
+    private final FloatBuffer vertexBuffer, mTexVertexBuffer, mTexVertexBufferF;
 
     private final ShortBuffer mVertexIndexBuffer;
 
@@ -83,18 +83,16 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             0f, 1f      //纹理坐标V5
     };
 
-    /**
-     * 颜色
-     * (R,G,B,A)
-     */
-    private static final float[] COLOR_VERTEX = {
-            1.0f, 0f, 0f, 1f,    //顶点坐标V0
-            0f, 1.0f, 0f, 1f,      //顶点坐标V1
-            0f, 0f, 1.0f, 1f,     //顶点坐标V2
+    private static final float[] TEX_VERTEX_F = {
 
-            1.0f, 1.0f, 0f, 1f,     //顶点坐标V3
-            0f, 1.0f, 1.0f, 1f,      //顶点坐标V4
-            1.0f, 0f, 1.0f, 1f,     //顶点坐标V5
+            0f, 0f,     //纹理坐标V2
+            1f, 1f,     //纹理坐标V3
+            0f, 1f,     //纹理坐标V0
+
+            1f, 0f,     //纹理坐标V3
+            1f, 1f,     //纹理坐标V4
+            0f, 0f      //纹理坐标V5
+
     };
 
     /**
@@ -123,11 +121,11 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 .put(TEX_VERTEX);
         mTexVertexBuffer.position(0);
 
-        mColorVertexBuffer = ByteBuffer.allocateDirect(COLOR_VERTEX.length * 4)
+        mTexVertexBufferF = ByteBuffer.allocateDirect(TEX_VERTEX_F.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
-                .put(COLOR_VERTEX);
-        mColorVertexBuffer.position(0);
+                .put(TEX_VERTEX_F);
+        mTexVertexBufferF.position(0);
 
         mVertexIndexBuffer = ByteBuffer.allocateDirect(VERTEX_INDEX.length * 2)
                 .order(ByteOrder.nativeOrder())
@@ -253,10 +251,11 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             if(!hasWrite){
                 hasWrite = true;
                 DLog.i("write to FBO--->");
-                int w_fbo = 0;
-                GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, new int[]{w_fbo}, 0);
+//                int w_fbo = 0;
+//                GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, new int[]{w_fbo}, 0);
 
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboUtils.getFrameBufferId());
+
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
                 // 设置矩阵
                 GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
@@ -268,9 +267,6 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 //启用纹理坐标属性
                 GLES20.glEnableVertexAttribArray(1);
                 GLES20.glVertexAttribPointer(1, 2, GLES20.GL_FLOAT, false, 0, mTexVertexBuffer);
-                //启用颜色属性
-                GLES20.glEnableVertexAttribArray(2);
-                GLES20.glVertexAttribPointer(2, 4, GLES20.GL_FLOAT, false, 0, mColorVertexBuffer);
                 //激活纹理
                 GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
                 GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,textureId);
@@ -280,17 +276,12 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
                 GLES20.glDisableVertexAttribArray(0);
                 GLES20.glDisableVertexAttribArray(1);
-                GLES20.glDisableVertexAttribArray(2);
 
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-
-                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, w_fbo);
-
-                GLES20.glUseProgram(0);
-
-
+//                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, w_fbo);
+//                GLES20.glUseProgram(0);
             }else {
-                DLog.i("FBO--->");
+                DLog.i("FBO--->"+textureId);
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
                 // 设置矩阵
                 GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
@@ -301,10 +292,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
                 //启用纹理坐标属性
                 GLES20.glEnableVertexAttribArray(1);
-                GLES20.glVertexAttribPointer(1, 2, GLES20.GL_FLOAT, false, 0, mTexVertexBuffer);
-                //启用颜色属性
-                GLES20.glEnableVertexAttribArray(2);
-                GLES20.glVertexAttribPointer(2, 4, GLES20.GL_FLOAT, false, 0, mColorVertexBuffer);
+                GLES20.glVertexAttribPointer(1, 2, GLES20.GL_FLOAT, false, 0, mTexVertexBufferF);
                 //激活纹理
                 GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
                 GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, fboUtils.getTextureId());
@@ -313,9 +301,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
                 GLES20.glDisableVertexAttribArray(0);
                 GLES20.glDisableVertexAttribArray(1);
-                GLES20.glDisableVertexAttribArray(2);
-
-                GLES20.glUseProgram(0);
+//
+//                GLES20.glUseProgram(0);
             }
         }
 
