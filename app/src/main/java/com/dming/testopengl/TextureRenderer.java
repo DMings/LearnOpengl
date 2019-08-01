@@ -252,8 +252,6 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             if(!hasWrite){
                 hasWrite = true;
                 DLog.i("write to FBO--->");
-//                int w_fbo = 0;
-//                GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, new int[]{w_fbo}, 0);
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboUtils.getFrameBufferId());
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
                 // 设置矩阵
@@ -279,7 +277,9 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 GLES20.glDisableVertexAttribArray(0);
                 GLES20.glDisableVertexAttribArray(1);
                 GLES20.glDisableVertexAttribArray(2);
+
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+                GLES20.glUseProgram(0);
             }else {
                 DLog.i("FBO--->");
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -305,6 +305,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 GLES20.glDisableVertexAttribArray(0);
                 GLES20.glDisableVertexAttribArray(1);
                 GLES20.glDisableVertexAttribArray(2);
+
+                GLES20.glUseProgram(0);
             }
         }
 
