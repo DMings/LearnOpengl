@@ -248,8 +248,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         GLES20.glViewport(0, 0, this.getWidth(), this.getHeight());
         //绑定纹理
         if(fboUtils != null){
-            if(!hasWrite){
-                hasWrite = true;
+//            if(!hasWrite){
+//                hasWrite = true;
                 DLog.i("write to FBO--->");
 //                int w_fbo = 0;
 //                GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, new int[]{w_fbo}, 0);
@@ -280,7 +280,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 //                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, w_fbo);
 //                GLES20.glUseProgram(0);
-            }else {
+//            }else {
                 DLog.i("FBO--->"+textureId);
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
                 // 设置矩阵
@@ -303,7 +303,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 GLES20.glDisableVertexAttribArray(1);
 //
 //                GLES20.glUseProgram(0);
-            }
+//            }
         }
 
 
