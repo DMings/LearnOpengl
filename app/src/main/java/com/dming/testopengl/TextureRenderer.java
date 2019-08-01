@@ -247,6 +247,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl) {
 //        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glViewport(0, 0, this.getWidth(), this.getHeight());
         //绑定纹理
         if(fboUtils != null){
             if(!hasWrite){
