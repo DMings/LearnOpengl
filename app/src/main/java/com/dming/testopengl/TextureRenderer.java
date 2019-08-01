@@ -30,7 +30,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     private int mProgram;
 
-    private int textureId;
+    private int textureId = -1;
 
     private Context mContext;
 
@@ -50,24 +50,24 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
      * 顶点坐标
      * (x,y,z)
      */
-    private float[] POSITION_VERTEX = new float[]{
-            -1f, -1f, 0f,    //顶点坐标V0
-            1f, 1f, 0f,      //顶点坐标V1
-            -1f, 1f, 0f,     //顶点坐标V2
-
-            1f, -1f, 0f,     //顶点坐标V3
-            1f, 1f, 0f,      //顶点坐标V4
-            -1f, -1f, 0f     //顶点坐标V5
-    };
 //    private float[] POSITION_VERTEX = new float[]{
-//            -0.5f, -0.5f, 0f,    //顶点坐标V0
-//            0.5f, 0.5f, 0f,      //顶点坐标V1
-//            -0.5f, 0.5f, 0f,     //顶点坐标V2
+//            -1f, -1f, 0f,    //顶点坐标V0
+//            1f, 1f, 0f,      //顶点坐标V1
+//            -1f, 1f, 0f,     //顶点坐标V2
 //
-//            0.5f, -0.5f, 0f,     //顶点坐标V3
-//            0.5f, 0.5f, 0f,      //顶点坐标V4
-//            -0.5f, -0.5f, 0f     //顶点坐标V5
+//            1f, -1f, 0f,     //顶点坐标V3
+//            1f, 1f, 0f,      //顶点坐标V4
+//            -1f, -1f, 0f     //顶点坐标V5
 //    };
+    private float[] POSITION_VERTEX = new float[]{
+            -0.5f, -0.5f, 0f,    //顶点坐标V0
+            0.5f, 0.5f, 0f,      //顶点坐标V1
+            -0.5f, 0.5f, 0f,     //顶点坐标V2
+
+            0.5f, -0.5f, 0f,     //顶点坐标V3
+            0.5f, 0.5f, 0f,      //顶点坐标V4
+            -0.5f, -0.5f, 0f     //顶点坐标V5
+    };
 
     /**
      * 纹理坐标
@@ -104,6 +104,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             0, 1, 2,  //V0,V1,V2 三个顶点组成一个三角形
             3, 4, 5   //V3,V4,V5 三个顶点组成一个三角形
     };
+    private FboUtils fboUtils;
 
     public TextureRenderer(Context context, GLSurfaceView glSurfaceView) {
         this.mContext = context;
@@ -147,14 +148,14 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private Run run;
 
     public abstract static class Run {
-        public abstract void getData(ByteBuffer byteBuffer);
+        public abstract void getData(int w, int h, ByteBuffer byteBuffer);
     }
 
     public void setRun(Run run) {
         this.run = run;
     }
 
-    public void setGetImage(){
+    public void setGetImage() {
         getImage = true;
     }
 
@@ -175,7 +176,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             float time = 1.0f * (end - start) / 1000000;
             DLog.d("glReadPixels: " + time + " > " + Thread.currentThread() + " width > " + width + " height > " + height);
             if (run != null) {
-                run.getData(mRgbaBuf);
+                run.getData(width, height, mRgbaBuf);
             }
         }
     }
@@ -200,8 +201,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 //        mBitmap = BitmapFactory.decodeResource(this.mContext.getResources(), R.mipmap.ic_launcher, options);
         mBitmap = BitmapFactory.decodeResource(this.mContext.getResources(), R.drawable.test_gl, options);
 
-        textureId = TextureUtils.loadTexture(mBitmap);
-        this.mGLSurfaceView.requestRender();
+//        textureId = TextureUtils.loadTexture(mBitmap);
     }
 
     @Override
@@ -213,37 +213,125 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 (float) width / (float) height :
                 (float) height / (float) width;
         Matrix.setIdentityM(mModelMatrix, 0);
-//        Matrix.scaleM(mModelMatrix, 0, 1f, 1 / aspectRatio, 1f);
+        Matrix.scaleM(mModelMatrix, 0, 1f, 1 / aspectRatio, 1f);
+
+        if(fboUtils == null){
+            fboUtils = new FboUtils();
+            boolean b = fboUtils.createInternal(width,height);
+            if(b){
+//           int texture = fboUtils.getTextureId();
+//           TextureUtils.loadTexture(mBitmap,texture);
+                if(textureId == -1){
+                    textureId = TextureUtils.loadTexture(mBitmap);
+                }
+            }else {
+                fboUtils = null;
+            }
+        }
+        this.mGLSurfaceView.requestRender();
     }
+
+//    private float[] mViewMatrix = new float[16];
+//    private float[] mProjectMatrix = new float[16];
+//    private float[] mMVPMatrix = new float[16];
+//    public void onSizeChange(int width, int height) {
+//        GLES20.glViewport(0, 0, width, height);
+//        //设置相机位置
+//        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, 5.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+//        //计算变换矩阵
+//        Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mViewMatrix, 0);
+//    }
+
+    private boolean hasWrite = false;
 
     @Override
     public void onDrawFrame(GL10 gl) {
 //        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-//        Matrix.rotateM(mModelMatrix, 0, 90, 0.0f, 0.0f, 1.0f);
-        GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
-        //使用程序片段
-        GLES20.glUseProgram(mProgram);
-        //启用顶点坐标属性
-        GLES20.glEnableVertexAttribArray(0);
-        GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
-        //启用纹理坐标属性
-        GLES20.glEnableVertexAttribArray(1);
-        GLES20.glVertexAttribPointer(1, 2, GLES20.GL_FLOAT, false, 0, mTexVertexBuffer);
-        //启用颜色属性
-        GLES20.glEnableVertexAttribArray(2);
-        GLES20.glVertexAttribPointer(2, 4, GLES20.GL_FLOAT, false, 0, mColorVertexBuffer);
-        //激活纹理
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         //绑定纹理
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
+        if(fboUtils != null){
+            if(!hasWrite){
+                hasWrite = true;
+                DLog.i("write to FBO--->");
+//                int w_fbo = 0;
+//                GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, new int[]{w_fbo}, 0);
+                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboUtils.getFrameBufferId());
+                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                // 设置矩阵
+                GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
+                //使用程序片段
+                GLES20.glUseProgram(mProgram);
+                //启用顶点坐标属性
+                GLES20.glEnableVertexAttribArray(0);
+                GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+                //启用纹理坐标属性
+                GLES20.glEnableVertexAttribArray(1);
+                GLES20.glVertexAttribPointer(1, 2, GLES20.GL_FLOAT, false, 0, mTexVertexBuffer);
+                //启用颜色属性
+                GLES20.glEnableVertexAttribArray(2);
+                GLES20.glVertexAttribPointer(2, 4, GLES20.GL_FLOAT, false, 0, mColorVertexBuffer);
+                //激活纹理
+                GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,textureId);
+
+                GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, POSITION_VERTEX.length / 3);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+                GLES20.glDisableVertexAttribArray(0);
+                GLES20.glDisableVertexAttribArray(1);
+                GLES20.glDisableVertexAttribArray(2);
+                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+            }else {
+                DLog.i("FBO--->");
+                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                // 设置矩阵
+                GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, mModelMatrix, 0);
+                //使用程序片段
+                GLES20.glUseProgram(mProgram);
+                //启用顶点坐标属性
+                GLES20.glEnableVertexAttribArray(0);
+                GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+                //启用纹理坐标属性
+                GLES20.glEnableVertexAttribArray(1);
+                GLES20.glVertexAttribPointer(1, 2, GLES20.GL_FLOAT, false, 0, mTexVertexBuffer);
+                //启用颜色属性
+                GLES20.glEnableVertexAttribArray(2);
+                GLES20.glVertexAttribPointer(2, 4, GLES20.GL_FLOAT, false, 0, mColorVertexBuffer);
+                //激活纹理
+                GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, fboUtils.getTextureId());
+                GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, POSITION_VERTEX.length / 3);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+                GLES20.glDisableVertexAttribArray(0);
+                GLES20.glDisableVertexAttribArray(1);
+                GLES20.glDisableVertexAttribArray(2);
+            }
+        }
+
+
+
+//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffers[0]);
+//        GLES20.glClearColor(0, 0, 0, 0);
+//        //画图形过程省略，和之前代码一样，可参考完整代码
+//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
 //        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, mBitmap, 0);
 //        GLES20.glEnable(GLES20.GL_BLEND);
 //        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, POSITION_VERTEX.length / 3);
+
 //        GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length, GLES20.GL_UNSIGNED_SHORT, mVertexIndexBuffer);
 //        GLES20.glDisable(GLES20.GL_BLEND);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+
+//        int id = 0;
+//        GLES30.glBindBuffer(GLES30.GL_PIXEL_PACK_BUFFER, id);
+//        GLES30.glBufferData(GLES30.GL_PIXEL_PACK_BUFFER, myVertexBufferSize, null, GLES30.GL_STATIC_DRAW);
+//        ByteBuffer mappedBuffer = (ByteBuffer)GLES30.glMapBufferRange(
+//                GLES30.GL_PIXEL_PACK_BUFFER,
+//                0, this.getWidth() * this.getHeight() * 4,
+//                GLES30.GL_MAP_WRITE_BIT | GLES30.GL_MAP_INVALIDATE_BUFFER_BIT);
+//        // [fill buffer...]
+//        GLES30.glUnmapBuffer(GLES30.GL_PIXEL_PACK_BUFFER);
 
 //        int err = GLES20.glGetError();
         getImagePixels();

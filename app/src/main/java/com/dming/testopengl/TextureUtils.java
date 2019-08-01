@@ -58,6 +58,18 @@ public class TextureUtils {
         }
     }
 
+    public static void loadTexture(Bitmap bitmap, int texture) {
+        int target = GLES20.GL_TEXTURE_2D;
+        GLES20.glBindTexture(target, texture);
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+        GLES20.glTexParameterf(target, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameterf(target, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR); //线性插值
+        GLES20.glTexParameteri(target, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(target, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glBindTexture(target, 0);
+        bitmap.recycle();
+    }
+
     public static int loadTexture(Bitmap bitmap) {
         return loadTexture(bitmap, GLES20.GL_TEXTURE_2D, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
     }

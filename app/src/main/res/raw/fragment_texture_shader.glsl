@@ -35,6 +35,6 @@ void main() {
             color+=texture(sampler, vTexCoord-vec2(0.0, tex_offset.y * float(i))).rgb*weight[i];
         }
     }
-    vFragColor=vec4(0.5f,0.1f,0.9f, 1.0f);
-//    vFragColor=vec4(color, orAlpha);
+//    vFragColor=vec4(0.5f,0.1f,0.9f, 1.0f);
+    vFragColor=vec4(color, orAlpha);
 }
