@@ -30,6 +30,5 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="#000"/>
+        android:layout_height="100dp"/>
 </android.support.constraint.ConstraintLayout>

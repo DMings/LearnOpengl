@@ -16,7 +16,7 @@ public class TextureUtils {
 
     private static final String TAG = "TextureUtils";
 
-    public static int loadTexture(Context context, int resourceId) {
+    public static int loadTexture(Context context, int resourceId,int t) {
         final int[] textureIds = new int[1];
         //创建一个纹理对象
         GLES20.glGenTextures(1, textureIds, 0);
@@ -70,7 +70,10 @@ public class TextureUtils {
         bitmap.recycle();
     }
 
-    public static int loadTexture(Bitmap bitmap) {
+    public static int loadTexture(Context context,int resId) {
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resId, options);
         return loadTexture(bitmap, GLES20.GL_TEXTURE_2D, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
     }
 
