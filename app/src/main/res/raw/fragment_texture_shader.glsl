@@ -1,13 +1,14 @@
 #version 300 es
 precision mediump float;
 uniform sampler2D sampler;
+uniform sampler2D sampler2;
 in vec2 vTexCoord;
 //in vec4 ourColor;
 out vec4 vFragColor;
 
 void main() {
     vec2 tex_offset =vec2(1.0/300.0, 1.0/300.0);
-    vec4 fColor = texture(sampler, vTexCoord);
+    vec4 fColor = texture(sampler2, vTexCoord);
 //    float fGrayColor = (0.3*fColor.r + 0.59*fColor.g + 0.11*fColor.b);
 //    vec4 outColor = vec4(fGrayColor, fGrayColor, fGrayColor, 1.0);
     //     vFragColor = texture(uTextureUnit,vTexCoord)* ourColor;

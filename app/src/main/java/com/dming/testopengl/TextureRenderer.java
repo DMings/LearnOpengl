@@ -238,14 +238,15 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
 
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
-                GLES20.GL_UNSIGNED_SHORT, mVertexIndexBuffer);
-
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture2Id);
 
-        GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer2);
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
                 GLES20.GL_UNSIGNED_SHORT, mVertexIndexBuffer);
+
+//        GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, vertexBuffer2);
+//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
+//                GLES20.GL_UNSIGNED_SHORT, mVertexIndexBuffer);
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
