@@ -102,4 +102,57 @@ public class MarkDown {
 //            GLES20.glUseProgram(0);
 //        }
 //    }
+
+//    public void getImagePixels() {
+//        if (getImage) {
+//            DLog.i("getImagePixels>>>>>");
+//            getImage = false;
+//            int width = this.mWidth;
+//            int height = this.mHeight;
+//            if (mRgbaBuf == null) {
+//                mRgbaBuf = ByteBuffer.allocateDirect(width * height * 4);
+//            }
+//            mRgbaBuf.position(0);
+//            long start = System.nanoTime();
+//            GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 4);
+//            GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mRgbaBuf);
+//            long end = System.nanoTime();
+//            float time = 1.0f * (end - start) / 1000000;
+//            DLog.d("glReadPixels: " + time + " > " + Thread.currentThread() + " width > " + width + " height > " + height);
+//            if (run != null) {
+//                run.getData(width, height, mRgbaBuf);
+//            }
+//        }
+//    }
+//
+//    public void readFBOImagePixels() {
+//        if (getImage) {
+//            DLog.i("readFBOImagePixels>>>>>");
+//            getImage = false;
+//            int width = this.mWidth;
+//            int height = this.mHeight;
+//            if (mRgbaBuf == null) {
+//                mRgbaBuf = ByteBuffer.allocateDirect(width * height * 4);
+//            }
+//            mRgbaBuf.position(0);
+//            long start = System.nanoTime();
+////            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboUtils.getFrameBufferId());
+//
+//            GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 4);
+//            GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mRgbaBuf);
+//
+//            //取消绑定FBO
+//            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_NONE);
+//
+//            long end = System.nanoTime();
+//            float time = 1.0f * (end - start) / 1000000;
+//            DLog.d("glReadPixels: " + time + " > " + Thread.currentThread() + " width > " + width + " height > " + height);
+//            if (run != null) {
+//                run.getData(width, height, mRgbaBuf);
+//            }
+//        }
+//    }
+
+//    GLES20.glLineWidth(10);
+//    gl_PointSize = 10.0;
 }

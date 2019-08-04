@@ -2,13 +2,13 @@
 uniform mat4 vMatrix;
 layout (location = 0) in vec4 vPosition;
 layout (location = 1) in vec2 aTextureCoord;
-//layout (location = 2) in vec4 aColor;
 
 out vec2 vTexCoord;
-//out vec4 ourColor;
+out vec4 vPost;
 
 void main() {
-     gl_Position  = vMatrix * vPosition;
+     gl_Position  = vPosition;
+//     gl_Position  = vMatrix * vPosition;
      vTexCoord = aTextureCoord;
-//     ourColor=aColor;
+     vPost = vPosition;
 }

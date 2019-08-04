@@ -1,11 +1,18 @@
 package com.dming.testopengl;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 public class ShaderHelper {
 
     private static final String TAG = "DMUI";
+
     /**
      * 编译顶点着色器
      *
@@ -165,13 +172,37 @@ public class ShaderHelper {
         // 步骤3：将顶点着色器、片段着色器进行链接，组装成一个OpenGL程序
         mProgram = ShaderHelper.linkProgram(vertexShaderId, fragmentShaderId);
 
-        if(!ShaderHelper.validateProgram(mProgram)){
+        if (!ShaderHelper.validateProgram(mProgram)) {
             mProgram = 0; // error
         }
 
         // 步骤4：通知OpenGL开始使用该程序
         GLES20.glUseProgram(mProgram);
         return mProgram;
+    }
+
+    public static int loadProgram(Context context, int vertexShaderRes, int fragmentShaderRes) {
+        final int vertexShaderId = ShaderHelper.compileVertexShader(ResReadUtils.readResource(context, vertexShaderRes));
+        final int fragmentShaderId = ShaderHelper.compileFragmentShader(ResReadUtils.readResource(context, fragmentShaderRes));
+        return ShaderHelper.linkProgram(vertexShaderId, fragmentShaderId);
+    }
+
+    public static FloatBuffer arrayToFloatBuffer(float[] fArray) {
+        FloatBuffer fBuffer = ByteBuffer.allocateDirect(fArray.length * 4)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+                .put(fArray);
+        fBuffer.position(0);
+        return fBuffer;
+    }
+
+    public static ShortBuffer arrayToShortBuffer(short[] sArray) {
+        ShortBuffer sBuffer = ByteBuffer.allocateDirect(sArray.length * 2)
+                .order(ByteOrder.nativeOrder())
+                .asShortBuffer()
+                .put(sArray);
+        sBuffer.position(0);
+        return sBuffer;
     }
 
 }

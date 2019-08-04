@@ -77,6 +77,13 @@ public class TextureUtils {
         return loadTexture(bitmap, GLES20.GL_TEXTURE_2D, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
     }
 
+    public static int getBitmapSize(Context context,int resId) {
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resId, options);
+        return loadTexture(bitmap, GLES20.GL_TEXTURE_2D, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+    }
+
     public static int loadTexture(Bitmap bitmap, int target, int f_param, int i_param) {
         return loadTexture(bitmap, target, f_param, f_param, i_param, i_param);
     }
