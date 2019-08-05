@@ -8,3 +8,5 @@
 /build
 /captures
 .externalNativeBuild
+.idea/encodings.xml
+.idea/vcs.xml

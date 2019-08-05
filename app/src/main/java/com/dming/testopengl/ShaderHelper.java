@@ -135,7 +135,8 @@ public class ShaderHelper {
             // 7.返回程序对象：失败，为0
             return 0;
         }
-
+        GLES20.glDeleteShader(vertexShaderId);
+        GLES20.glDeleteShader(fragmentShaderId);
         // 7.返回程序对象：成功，非0
         return programObjectId;
     }
