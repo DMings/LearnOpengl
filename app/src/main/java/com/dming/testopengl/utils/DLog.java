@@ -1,7 +1,8 @@
-package com.dming.testopengl;
+package com.dming.testopengl.utils;
 
 import android.util.Log;
 
+import com.dming.testopengl.BuildConfig;
 
 
 /**

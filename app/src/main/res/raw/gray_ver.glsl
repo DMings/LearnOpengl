@@ -8,6 +8,5 @@ out vec2 vTexCoord;
 
 void main() {
      gl_Position  = vPosition;
-//     gl_Position  = vMatrix * vPosition;
      vTexCoord = aTextureCoord;
 }

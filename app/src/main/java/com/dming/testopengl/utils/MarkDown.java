@@ -1,6 +1,4 @@
-package com.dming.testopengl;
-
-import android.opengl.GLES20;
+package com.dming.testopengl.utils;
 
 public class MarkDown {
 
@@ -155,4 +153,60 @@ public class MarkDown {
 
 //    GLES20.glLineWidth(10);
 //    gl_PointSize = 10.0;
+
+    //        //生成Render Buffer
+//        GLES20.glGenRenderbuffers(1,renderBuffers,0);
+//        //绑定Render Buffer
+//        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER,renderBuffers[0]);
+//        //设置为深度的Render Buffer，并传入大小
+//        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER,GLES20.GL_DEPTH_COMPONENT16,
+//                width, height);
+//        //为FrameBuffer挂载fRender[0]来存储深度
+//        GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT,
+//                GLES20.GL_RENDERBUFFER, renderBuffers[0])
+//    GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
+//    public boolean createInternal(int width, int height) {
+//        int[] frameBuffer = new int[1];
+//        int[] frameBufferTexture = new int[1];
+////        int[] renderBuffers = new int[1];
+//
+//        // generate frame buffer
+//        GLES20.glGenFramebuffers(1, frameBuffer, 0);
+//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer[0]);
+//
+//        // generate texture
+//        GLES20.glGenTextures(1, frameBufferTexture, 0);
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, frameBufferTexture[0]);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+//        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+//        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
+//                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+//        // set texture as colour attachment
+//        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
+//                GLES20.GL_TEXTURE_2D, frameBufferTexture[0], 0);
+////
+//
+//
+//        // unbind
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+//        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
+//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+//
+//        mFrameBufferId = frameBuffer[0];
+//        mFrameBufferTextureId = frameBufferTexture[0];
+////        mRenderBufferId = renderBuffers[0];
+//
+//        mWidth = width;
+//        mHeight = height;
+//
+//        if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+//            DLog.e(TAG, "create framebuffer failed");
+//            return false;
+//        }
+//        DLog.e(TAG, "Java create framebuffer success: (" +
+//                width + ", " + height + "), FB: " + mFrameBufferId + " , Tex: " + mFrameBufferTextureId+ " , Rend: " + mRenderBufferId);
+//        return true;
+//    }
 }

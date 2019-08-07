@@ -1,17 +1,16 @@
-package com.dming.testopengl;
+package com.dming.testopengl.utils;
 
 import android.content.Context;
 import android.opengl.GLES20;
-import android.util.Log;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 public class ShaderHelper {
-
-    private static final String TAG = "DMUI";
 
     /**
      * 编译顶点着色器
@@ -48,9 +47,7 @@ public class ShaderHelper {
         if (shaderObjectId == 0) {
             // 在OpenGL中，都是通过整型值去作为OpenGL对象的引用。之后进行操作的时候都是将这个整型值传回给OpenGL进行操作。
             // 返回值0代表着创建对象失败。
-            if (LoggerConfig.ON) {
-                Log.w(TAG, "Could not create new shader.");
-            }
+            DLog.e("Could not create new shader.");
             return 0;
         }
 
@@ -64,21 +61,15 @@ public class ShaderHelper {
         final int[] compileStatus = new int[1];
         GLES20.glGetShaderiv(shaderObjectId, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
 
-        if (LoggerConfig.ON) {
-            // 打印编译的着色器信息
-            Log.v(TAG, "Results of compiling source:" + "\n" + shaderCode + "\n:"
-                    + GLES20.glGetShaderInfoLog(shaderObjectId));
-        }
+        // 打印编译的着色器信息
+//        DLog.i( "Results of compiling source:" + "\n" + shaderCode + "\n:"
+//                + GLES20.glGetShaderInfoLog(shaderObjectId));
 
         // 6.验证编译状态
         if (compileStatus[0] == 0) {
             // 如果编译失败，则删除创建的着色器对象
             GLES20.glDeleteShader(shaderObjectId);
-
-            if (LoggerConfig.ON) {
-                Log.w(TAG, "Compilation of shader failed.");
-            }
-
+            DLog.e("Compilation of shader failed.");
             // 7.返回着色器对象：失败，为0
             return 0;
         }
@@ -101,9 +92,7 @@ public class ShaderHelper {
 
         // 2.获取创建状态
         if (programObjectId == 0) {
-            if (LoggerConfig.ON) {
-                Log.w(TAG, "Could not create new program");
-            }
+            DLog.e("Could not create new program");
             return 0;
         }
 
@@ -119,19 +108,15 @@ public class ShaderHelper {
         final int[] linkStatus = new int[1];
         GLES20.glGetProgramiv(programObjectId, GLES20.GL_LINK_STATUS, linkStatus, 0);
 
-        if (LoggerConfig.ON) {
-            // 打印链接信息
-            Log.v(TAG, "Results of linking program:\n"
-                    + GLES20.glGetProgramInfoLog(programObjectId));
-        }
+        // 打印链接信息
+//            DLog.i("Results of linking program:\n"
+//                    + GLES20.glGetProgramInfoLog(programObjectId));
 
         // 6.验证链接状态
         if (linkStatus[0] == 0) {
             // 链接失败则删除程序对象
             GLES20.glDeleteProgram(programObjectId);
-            if (LoggerConfig.ON) {
-                Log.w(TAG, "Linking of program failed.");
-            }
+            DLog.e("Linking of program failed.");
             // 7.返回程序对象：失败，为0
             return 0;
         }
@@ -152,39 +137,34 @@ public class ShaderHelper {
 
         final int[] validateStatus = new int[1];
         GLES20.glGetProgramiv(programObjectId, GLES20.GL_VALIDATE_STATUS, validateStatus, 0);
-        Log.v(TAG, "Results of validating program: " + validateStatus[0]
+        DLog.i("Results of validating program: " + validateStatus[0]
                 + "\nLog:" + GLES20.glGetProgramInfoLog(programObjectId));
 
         return validateStatus[0] != 0;
     }
 
+    public static String readResource(Context context, int id) {
+        InputStream inputStream = context.getResources().openRawResource(id);
+        StringBuilder out = new StringBuilder();
+        byte[] b = new byte[4096];
+        try {
+            for (int n; (n = inputStream.read(b)) != -1; ) {
+                out.append(new String(b, 0, n));
+            }
+        } catch (IOException io) {
+        }
+        return out.toString();
+    }
+
     /**
      * 创建OpenGL程序对象
      *
-     * @param vertexShader   顶点着色器代码
-     * @param fragmentShader 片段着色器代码
+     * @param vertexShaderRes   顶点着色器代码
+     * @param fragmentShaderRes 片段着色器代码
      */
-    public static int makeProgram(String vertexShader, String fragmentShader) {
-        int mProgram;
-        // 步骤1：编译顶点着色器
-        int vertexShaderId = ShaderHelper.compileVertexShader(vertexShader);
-        // 步骤2：编译片段着色器
-        int fragmentShaderId = ShaderHelper.compileFragmentShader(fragmentShader);
-        // 步骤3：将顶点着色器、片段着色器进行链接，组装成一个OpenGL程序
-        mProgram = ShaderHelper.linkProgram(vertexShaderId, fragmentShaderId);
-
-        if (!ShaderHelper.validateProgram(mProgram)) {
-            mProgram = 0; // error
-        }
-
-        // 步骤4：通知OpenGL开始使用该程序
-        GLES20.glUseProgram(mProgram);
-        return mProgram;
-    }
-
     public static int loadProgram(Context context, int vertexShaderRes, int fragmentShaderRes) {
-        final int vertexShaderId = ShaderHelper.compileVertexShader(ResReadUtils.readResource(context, vertexShaderRes));
-        final int fragmentShaderId = ShaderHelper.compileFragmentShader(ResReadUtils.readResource(context, fragmentShaderRes));
+        final int vertexShaderId = ShaderHelper.compileVertexShader(readResource(context, vertexShaderRes));
+        final int fragmentShaderId = ShaderHelper.compileFragmentShader(readResource(context, fragmentShaderRes));
         return ShaderHelper.linkProgram(vertexShaderId, fragmentShaderId);
     }
 

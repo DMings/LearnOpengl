@@ -3,14 +3,13 @@ package com.dming.testopengl.filter;
 import android.content.Context;
 import android.opengl.GLES20;
 
-import com.dming.testopengl.DLog;
 import com.dming.testopengl.R;
-import com.dming.testopengl.ShaderHelper;
+import com.dming.testopengl.utils.ShaderHelper;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-public abstract class BaseFilter implements IShader {
+public class BaseFilter implements IShader {
 
     private final ShortBuffer mIndexSB;
     private final FloatBuffer mTexFB;
@@ -38,11 +37,10 @@ public abstract class BaseFilter implements IShader {
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture");
-        DLog.i("mProgram: " + mProgram);
     }
 
     @Override
-    public void initShader(float viewRatio, float imgRatio) {
+    public void initShader(int width, int height,float viewRatio, float imgRatio) {
         mPosFB = ShaderHelper.arrayToFloatBuffer(new float[]{
                 -viewRatio * imgRatio, 1.0f, 0f,
                 -viewRatio * imgRatio, -1.0f, 0f,

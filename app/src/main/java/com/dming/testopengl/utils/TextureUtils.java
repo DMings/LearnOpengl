@@ -1,4 +1,4 @@
-package com.dming.testopengl;
+package com.dming.testopengl.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,11 +6,6 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
-
-/**
- * @anchor: andy
- * @date: 18-11-10
- */
 
 public class TextureUtils {
 
