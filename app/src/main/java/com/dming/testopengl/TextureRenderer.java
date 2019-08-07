@@ -7,6 +7,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
+import com.dming.testopengl.filter.AlphaFilter;
 import com.dming.testopengl.filter.BlurFilter;
 import com.dming.testopengl.filter.DarkenLightFilter;
 import com.dming.testopengl.filter.EdgeFilter;
@@ -40,7 +41,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private SmoothFilter mSmoothFilter;
     private SubduedLightFilter mSubduedLightFilter;
     private DarkenLightFilter mDarkenLightFilter;
-    private MosaicFilter mMosaicFilter;
+//    private MosaicFilter mMosaicFilter;
+    private AlphaFilter mAlphaFilter;
     private EdgeFilter mEdgeFilter;
 
 
@@ -59,7 +61,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         mSmoothFilter = new SmoothFilter(mContext);
         mSubduedLightFilter = new SubduedLightFilter(mContext);
         mDarkenLightFilter = new DarkenLightFilter(mContext);
-        mMosaicFilter = new MosaicFilter(mContext);
+        mAlphaFilter = new AlphaFilter(mContext);
         mEdgeFilter = new EdgeFilter(mContext);
         //
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -89,7 +91,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         mSmoothFilter.initShader(width, height, aspectRatio, mBpRatio);
         mSubduedLightFilter.initShader(width, height, aspectRatio, mBpRatio);
         mDarkenLightFilter.initShader(width, height, aspectRatio, mBpRatio);
-        mMosaicFilter.initShader(width, height, aspectRatio, mBpRatio);
+        mAlphaFilter.initShader(width, height, aspectRatio, mBpRatio);
         mEdgeFilter.initShader(width, height, aspectRatio, mBpRatio);
     }
 
@@ -105,7 +107,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         mSmoothFilter.onDraw(mTextureId, w, h * 2, w, h);
         mSubduedLightFilter.onDraw(mTextureId, w * 2, h, w, h);
         mDarkenLightFilter.onDraw(mTextureId, w, h, w, h);
-        mMosaicFilter.onDraw(mTextureId, 0, 0, w, h);
+        mAlphaFilter.onDraw(mTextureId, 0, 0, w, h);
         mEdgeFilter.onDraw(mTextureId, w * 2, 0, w, h);
         int err = GLES20.glGetError();
         DLog.i("gl err: " + err);
@@ -119,7 +121,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         mSmoothFilter.onDestroy();
         mSubduedLightFilter.onDestroy();
         mDarkenLightFilter.onDestroy();
-        mMosaicFilter.onDestroy();
+        mAlphaFilter.onDestroy();
         mEdgeFilter.onDestroy();
         GLES20.glDeleteTextures(1, new int[]{mTextureId}, 0);
     }

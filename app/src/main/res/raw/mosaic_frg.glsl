@@ -2,15 +2,14 @@
 precision mediump float;
 varying vec2 textureCoordinate;
 uniform sampler2D inputImageTexture;
-const vec2 TexSize = vec2(400.0, 400.0);
-const vec2 mosaicSize = vec2(16.0, 16.0);
+const vec2 mosaicSizeRatio = vec2(0.11, 0.0625);
 
 void main()
 {
-    //mosaic
-    vec2 intXY = vec2(textureCoordinate.x*TexSize.x, textureCoordinate.y*TexSize.y);
-    vec2 XYMosaic = vec2(floor(intXY.x/mosaicSize.x)*mosaicSize.x, floor(intXY.y/mosaicSize.y)*mosaicSize.y);
-    vec2 UVMosaic = vec2(XYMosaic.x/TexSize.x, XYMosaic.y/TexSize.y);
+    // mosaic 2
+    vec2 eachXY = vec2(floor(textureCoordinate.x / mosaicSizeRatio.x), floor(textureCoordinate.y / mosaicSizeRatio.y));
+    vec2 totalXY = vec2(floor(1.0 / mosaicSizeRatio.x), floor(1.0 / mosaicSizeRatio.y));
+    vec2 UVMosaic = vec2(eachXY.x / totalXY.x, eachXY.y / totalXY.y);
     vec4 color = texture2D(inputImageTexture, UVMosaic);
     gl_FragColor = color;
 }

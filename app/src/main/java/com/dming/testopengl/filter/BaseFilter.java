@@ -11,24 +11,24 @@ import java.nio.ShortBuffer;
 
 public class BaseFilter implements IShader {
 
-    private final ShortBuffer mIndexSB;
-    private final FloatBuffer mTexFB;
-    private FloatBuffer mPosFB;
-    private static final short[] VERTEX_INDEX = {
+    protected final ShortBuffer mIndexSB;
+    protected final FloatBuffer mTexFB;
+    protected FloatBuffer mPosFB;
+    protected static final short[] VERTEX_INDEX = {
             0, 1, 3,
             2, 3, 1
     };
-    private static final float[] TEX_VERTEX = {
+    protected static final float[] TEX_VERTEX = {
             0f, 0f,
             0f, 1f,
             1f, 1f,
             1f, 0f,
     };
-    private int mProgram;
+    protected int mProgram;
 
-    private int mPosition;
-    private int mTextureCoordinate;
-    private int mImageTexture;
+    protected int mPosition;
+    protected int mTextureCoordinate;
+    protected int mImageTexture;
 
     public BaseFilter(Context context, int resFrgId) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
