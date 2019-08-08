@@ -2,6 +2,7 @@ package com.dming.testopengl.filter;
 
 import android.content.Context;
 import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import com.dming.testopengl.R;
 import com.dming.testopengl.utils.ShaderHelper;
@@ -29,6 +30,8 @@ public class BaseFilter implements IShader {
     protected int mPosition;
     protected int mTextureCoordinate;
     protected int mImageTexture;
+    protected int mMatrix;
+    protected float[] mModelMatrix = new float[4 * 4];
 
     public BaseFilter(Context context, int resFrgId) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
@@ -37,6 +40,7 @@ public class BaseFilter implements IShader {
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture");
+        mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
     }
 
     @Override
@@ -47,6 +51,7 @@ public class BaseFilter implements IShader {
                 viewRatio * imgRatio, -1.0f, 0f,
                 viewRatio * imgRatio, 1.0f, 0f,
         });
+        Matrix.setIdentityM(mModelMatrix, 0);
     }
 
     @Override
@@ -63,6 +68,7 @@ public class BaseFilter implements IShader {
         GLES20.glEnableVertexAttribArray(mTextureCoordinate);
         GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
                 GLES20.GL_FLOAT, false, 0, mTexFB);
+        GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
         GLES20.glUniform1i(mImageTexture, 0);

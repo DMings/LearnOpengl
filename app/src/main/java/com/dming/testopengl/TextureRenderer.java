@@ -5,18 +5,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
 
-import com.dming.testopengl.filter.AlphaFilter;
+import com.dming.testopengl.filter.SoulFilter;
 import com.dming.testopengl.filter.BlurFilter;
+import com.dming.testopengl.filter.BurrFilter;
 import com.dming.testopengl.filter.DarkenLightFilter;
 import com.dming.testopengl.filter.EdgeFilter;
 import com.dming.testopengl.filter.LineGraph;
 import com.dming.testopengl.filter.LuminanceFilter;
-import com.dming.testopengl.filter.MosaicFilter;
 import com.dming.testopengl.filter.NoFilter;
 import com.dming.testopengl.filter.SharpenFilter;
-import com.dming.testopengl.filter.SmoothFilter;
 import com.dming.testopengl.filter.SubduedLightFilter;
 import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.TextureUtils;
@@ -29,7 +27,6 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private Context mContext;
 
     private int mTextureId;
-    private float[] mModelMatrix = new float[4 * 4];
     private int width, height;
     private float mBpRatio;
 
@@ -38,11 +35,12 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private LuminanceFilter mLuminanceFilter;
     private BlurFilter mBlurFilter;
     private SharpenFilter mSharpenFilter;
-    private SmoothFilter mSmoothFilter;
+//    private SmoothFilter mSmoothFilter;
+    private BurrFilter mBurrFilter;
     private SubduedLightFilter mSubduedLightFilter;
     private DarkenLightFilter mDarkenLightFilter;
 //    private MosaicFilter mMosaicFilter;
-    private AlphaFilter mAlphaFilter;
+    private SoulFilter mAlphaFilter;
     private EdgeFilter mEdgeFilter;
 
 
@@ -58,10 +56,10 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         mNoFilter = new NoFilter(mContext);
         mBlurFilter = new BlurFilter(mContext);
         mSharpenFilter = new SharpenFilter(mContext);
-        mSmoothFilter = new SmoothFilter(mContext);
+        mBurrFilter = new BurrFilter(mContext);
         mSubduedLightFilter = new SubduedLightFilter(mContext);
         mDarkenLightFilter = new DarkenLightFilter(mContext);
-        mAlphaFilter = new AlphaFilter(mContext);
+        mAlphaFilter = new SoulFilter(mContext);
         mEdgeFilter = new EdgeFilter(mContext);
         //
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -80,15 +78,13 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         float aspectRatio = width > height ?
                 (float) width / (float) height :
                 (float) height / (float) width;
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.scaleM(mModelMatrix, 0, 1f, 1 / aspectRatio, 1f);
         DLog.i("aspectRatio: " + aspectRatio + " mBpRatio: " + mBpRatio);
         mLineGraph.initShader(width, height, aspectRatio, mBpRatio);
         mLuminanceFilter.initShader(width, height, aspectRatio, mBpRatio);
         mNoFilter.initShader(width, height, aspectRatio, mBpRatio);
         mBlurFilter.initShader(width/3, height/3, aspectRatio, mBpRatio);
         mSharpenFilter.initShader(width, height, aspectRatio, mBpRatio);
-        mSmoothFilter.initShader(width, height, aspectRatio, mBpRatio);
+        mBurrFilter.initShader(width, height, aspectRatio, mBpRatio);
         mSubduedLightFilter.initShader(width, height, aspectRatio, mBpRatio);
         mDarkenLightFilter.initShader(width, height, aspectRatio, mBpRatio);
         mAlphaFilter.initShader(width, height, aspectRatio, mBpRatio);
@@ -97,20 +93,22 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        long time = System.currentTimeMillis();
         int w = width / 3;
         int h = height / 3;
         mLineGraph.onDraw(mTextureId, width, height);
         mNoFilter.onDraw(mTextureId, 0, h * 2, w, h);
         mLuminanceFilter.onDraw(mTextureId,w,0, w, h);
-        mBlurFilter.onDraw(mTextureId, 0, h, w, h);
+        mBurrFilter.onDraw(mTextureId, 0, h, w, h);
         mSharpenFilter.onDraw(mTextureId, w * 2, h * 2, w, h);
-        mSmoothFilter.onDraw(mTextureId, w, h * 2, w, h);
+        mBlurFilter.onDraw(mTextureId, w, h * 2, w, h);
         mSubduedLightFilter.onDraw(mTextureId, w * 2, h, w, h);
         mDarkenLightFilter.onDraw(mTextureId, w, h, w, h);
         mAlphaFilter.onDraw(mTextureId, 0, 0, w, h);
         mEdgeFilter.onDraw(mTextureId, w * 2, 0, w, h);
-        int err = GLES20.glGetError();
-        DLog.i("gl err: " + err);
+        DLog.i("time: "+(System.currentTimeMillis() - time));
+//        int err = GLES20.glGetError();
+//        DLog.i("gl err: " + err);
     }
 
     public void onDestroy() {
@@ -118,7 +116,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         mLuminanceFilter.onDestroy();
         mBlurFilter.onDestroy();
         mSharpenFilter.onDestroy();
-        mSmoothFilter.onDestroy();
+        mBurrFilter.onDestroy();
         mSubduedLightFilter.onDestroy();
         mDarkenLightFilter.onDestroy();
         mAlphaFilter.onDestroy();

@@ -2,6 +2,7 @@ package com.dming.testopengl.filter;
 
 import android.content.Context;
 import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import com.dming.testopengl.R;
 import com.dming.testopengl.utils.DLog;
@@ -45,6 +46,9 @@ public class BlurFilter implements IShader {
     private boolean isCreateFBO = false;
     private int mFBOWidth;
     private int mFBOHeight;
+    //
+    protected int mMatrix;
+    protected float[] mModelMatrix = new float[4 * 4];
 
     public BlurFilter(Context context) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
@@ -55,6 +59,7 @@ public class BlurFilter implements IShader {
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture");
         mIsVertical = GLES20.glGetUniformLocation(mProgram, "isVertical");
+        mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
     }
 
     @Override
@@ -72,6 +77,7 @@ public class BlurFilter implements IShader {
                 1, 1.0f, 0f,
         });
         isCreateFBO = createFBO((int) (width * viewRatio * imgRatio), height);
+        Matrix.setIdentityM(mModelMatrix, 0);
     }
 
     @Override
@@ -99,6 +105,7 @@ public class BlurFilter implements IShader {
         GLES20.glEnableVertexAttribArray(mTextureCoordinate);
         GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
                 GLES20.GL_FLOAT, false, 0, mTexFB);
+        GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
         GLES20.glUniform1i(mIsVertical, 0);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
@@ -121,6 +128,7 @@ public class BlurFilter implements IShader {
         GLES20.glEnableVertexAttribArray(mTextureCoordinate);
         GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
                 GLES20.GL_FLOAT, false, 0, mFBOTexFB);
+        GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
         GLES20.glUniform1i(mIsVertical, 1);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
