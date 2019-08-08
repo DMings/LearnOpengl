@@ -18,10 +18,10 @@ void main()
         for (int x=0; x<coreSize; x++) {
             vec4 currentColor=texture2D(inputImageTexture, textureCoordinate+vec2(float(-1+x)*texelOffset, float(-1+y)*texelOffset));
             color += currentColor * kernel[index++];
-            if(color.r == 0.0 && color.g == 0.0 && color.b == 0.0){
-                color.rgb =  vec3(1.0,1.0,1.0);
-            }
         }
     }
+//    if(color.r < 0.1 && color.g < 0.1 && color.b < 0.1){
+//        color =  vec4(1.0,1.0,1.0,0.0);
+//    }
     gl_FragColor = color;
 }
