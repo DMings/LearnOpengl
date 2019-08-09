@@ -6,9 +6,11 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.dming.testopengl.R;
+import com.dming.testopengl.camera.CameraTex;
 import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.ShaderHelper;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
@@ -21,12 +23,6 @@ public class CameraFilter implements IShader {
             0, 1, 3,
             2, 3, 1
     };
-    protected static final float[] TEX_VERTEX = {
-            0f, 0f,
-            0f, 1f,
-            1f, 1f,
-            1f, 0f,
-    };
     protected int mProgram;
 
     protected int mPosition;
@@ -35,19 +31,21 @@ public class CameraFilter implements IShader {
     protected int mMatrix;
     protected float[] mModelMatrix = new float[4 * 4];
 
-    public CameraFilter(Context context) {
+    public CameraFilter(Context context,int orientation) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
-        mTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX);
+        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
         mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.camera_frg);
         DLog.i("mProgram: "+mProgram);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageOESTexture = GLES20.glGetUniformLocation(mProgram, "inputImageOESTexture");
         mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
+        mPosFB = null;
     }
 
     @Override
     public void initShader(int width, int height,float viewRatio, float imgRatio) {
+        DLog.i("initShader: ");
         mPosFB = ShaderHelper.arrayToFloatBuffer(new float[]{
                 -viewRatio * imgRatio, 1.0f, 0f,
                 -viewRatio * imgRatio, -1.0f, 0f,
@@ -64,6 +62,9 @@ public class CameraFilter implements IShader {
 
     @Override
     public void onDraw(int textureId, int x, int y, int width, int height) {
+        if(mPosFB == null){
+            return;
+        }
         GLES20.glUseProgram(mProgram);
         GLES20.glEnableVertexAttribArray(mPosition);
         GLES20.glVertexAttribPointer(mPosition, 3,

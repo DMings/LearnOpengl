@@ -1,6 +1,7 @@
 package com.dming.testopengl.filter;
 
 import android.content.Context;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
@@ -11,8 +12,8 @@ public class SoulFilter extends BaseFilter {
     private int mAlpha;
     private float mScaleRatio = 1.0f;
 
-    public SoulFilter(Context context) {
-        super(context, R.raw.soul_frg);
+    public SoulFilter(Context context,int orientation) {
+        super(context, R.raw.soul_frg, orientation);
         mAlpha = GLES20.glGetUniformLocation(mProgram, "inputAlpha");
     }
 
@@ -37,8 +38,8 @@ public class SoulFilter extends BaseFilter {
                 GLES20.GL_FLOAT, false, 0, mTexFB);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
-        GLES20.glUniform1i(mImageTexture, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
+        GLES20.glUniform1i(mImageOESTexture, 0);
         GLES20.glViewport(x, y, width, height);
 
         Matrix.scaleM(mModelMatrix, 0, 1f, 1.0f, 1f);
@@ -53,10 +54,10 @@ public class SoulFilter extends BaseFilter {
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
                 GLES20.GL_UNSIGNED_SHORT, mIndexSB);
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
         GLES20.glDisableVertexAttribArray(mPosition);
         GLES20.glDisableVertexAttribArray(mTextureCoordinate);
-        GLES20.glDisableVertexAttribArray(mImageTexture);
+        GLES20.glDisableVertexAttribArray(mImageOESTexture);
         GLES20.glUseProgram(0);
         GLES20.glDisable(GLES20.GL_BLEND);
 

@@ -1,5 +1,6 @@
 #version 300 es
-
+//#extension GL_OES_EGL_image_external : require
+//uniform samplerExternalOES inputImageOESTexture;
 precision mediump float;
 uniform sampler2D sampler;
 in vec2 vTexCoord;// st xy

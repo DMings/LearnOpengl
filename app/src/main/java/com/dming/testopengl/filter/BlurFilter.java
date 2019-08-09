@@ -1,10 +1,12 @@
 package com.dming.testopengl.filter;
 
 import android.content.Context;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.dming.testopengl.R;
+import com.dming.testopengl.camera.CameraTex;
 import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.ShaderHelper;
 
@@ -22,24 +24,18 @@ public class BlurFilter implements IShader {
             0, 1, 3,
             2, 3, 1
     };
-    private static final float[] TEX_VERTEX = {
-            0f, 0f,
-            0f, 1f,
-            1f, 1f,
-            1f, 0f,
-    };
     private static final float[] TEX_VERTEX_FBO = {
             0f, 1f,
             0f, 0f,
             1f, 0f,
             1f, 1f,
     };
-    private int mProgram;
-
-    private int mPosition;
-    private int mTextureCoordinate;
-    private int mImageTexture;
-    private int mIsVertical;
+    private int mOESProgram;
+    private int mOESImageTexture;
+    private int mOESPosition;
+    private int mOESTextureCoordinate;
+    private int mOESIsVertical;
+    private int mOESMatrix;
     // FBO
     private int[] mFrameBuffer = new int[1];
     private int[] mFrameBufferTexture = new int[1];
@@ -47,14 +43,27 @@ public class BlurFilter implements IShader {
     private int mFBOWidth;
     private int mFBOHeight;
     //
-    protected int mMatrix;
-    protected float[] mModelMatrix = new float[4 * 4];
+    private float[] mModelMatrix = new float[4 * 4];
+    //
+    private int mProgram;
+    private int mImageTexture;
+    private int mPosition;
+    private int mTextureCoordinate;
+    private int mIsVertical;
+    private int mMatrix;
 
-    public BlurFilter(Context context) {
+    public BlurFilter(Context context,int orientation) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
-        mTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX);
+        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
         mFBOTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_FBO);
-        mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.blur_frg);
+        mOESProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.blur_frg);
+        mOESPosition = GLES20.glGetAttribLocation(mOESProgram, "inputPosition");
+        mOESTextureCoordinate = GLES20.glGetAttribLocation(mOESProgram, "inputTextureCoordinate");
+        mOESImageTexture = GLES20.glGetUniformLocation(mOESProgram, "inputImageOESTexture");
+        mOESIsVertical = GLES20.glGetUniformLocation(mOESProgram, "isVertical");
+        mOESMatrix = GLES20.glGetUniformLocation(mOESProgram, "inputMatrix");
+
+        mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.texture2d_frg);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture");
@@ -92,8 +101,6 @@ public class BlurFilter implements IShader {
             drawFBO(textureId, 0, 0, mFBOWidth, mFBOHeight);
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
             draw(mFrameBufferTexture[0], x, y, width, height);
-        } else {
-            draw(textureId, x, y, width, height);
         }
     }
 
@@ -121,25 +128,25 @@ public class BlurFilter implements IShader {
     }
 
     private void drawFBO(int textureId, int x, int y, int width, int height) {
-        GLES20.glUseProgram(mProgram);
-        GLES20.glEnableVertexAttribArray(mPosition);
-        GLES20.glVertexAttribPointer(mPosition, 3,
+        GLES20.glUseProgram(mOESProgram);
+        GLES20.glEnableVertexAttribArray(mOESPosition);
+        GLES20.glVertexAttribPointer(mOESPosition, 3,
                 GLES20.GL_FLOAT, false, 0, mFBOPosFB);
-        GLES20.glEnableVertexAttribArray(mTextureCoordinate);
-        GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
+        GLES20.glEnableVertexAttribArray(mOESTextureCoordinate);
+        GLES20.glVertexAttribPointer(mOESTextureCoordinate, 2,
                 GLES20.GL_FLOAT, false, 0, mFBOTexFB);
-        GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
-        GLES20.glUniform1i(mIsVertical, 1);
+        GLES20.glUniformMatrix4fv(mOESMatrix, 1, false, mModelMatrix, 0);
+        GLES20.glUniform1i(mOESIsVertical, 1);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
-        GLES20.glUniform1i(mImageTexture, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
+        GLES20.glUniform1i(mOESImageTexture, 0);
         GLES20.glViewport(x, y, width, height);
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
                 GLES20.GL_UNSIGNED_SHORT, mIndexSB);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        GLES20.glDisableVertexAttribArray(mPosition);
-        GLES20.glDisableVertexAttribArray(mTextureCoordinate);
-        GLES20.glDisableVertexAttribArray(mImageTexture);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
+        GLES20.glDisableVertexAttribArray(mOESPosition);
+        GLES20.glDisableVertexAttribArray(mOESTextureCoordinate);
+        GLES20.glDisableVertexAttribArray(mOESImageTexture);
         GLES20.glUseProgram(0);
     }
 
@@ -173,11 +180,11 @@ public class BlurFilter implements IShader {
 
     @Override
     public void onDestroy() {
-        GLES20.glDeleteProgram(mProgram);
+        GLES20.glDeleteProgram(mOESProgram);
         if (isCreateFBO) {
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
             GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
-                    GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, 0, 0);
+                    GLES20.GL_COLOR_ATTACHMENT0, GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0, 0);
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
             GLES20.glDeleteFramebuffers(1, mFrameBuffer, 0);
             GLES20.glDeleteTextures(1, mFrameBufferTexture, 0);

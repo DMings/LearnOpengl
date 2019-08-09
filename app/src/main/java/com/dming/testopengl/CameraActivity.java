@@ -1,7 +1,10 @@
 package com.dming.testopengl;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
@@ -11,11 +14,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.Surface;
+import android.view.View;
 import android.view.WindowManager;
 
 import com.dming.testopengl.camera.CameraSize;
 import com.dming.testopengl.camera.CameraThread;
-import com.dming.testopengl.camera.Constants;
 import com.dming.testopengl.utils.DLog;
 
 import java.io.IOException;
@@ -34,25 +40,52 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     private Camera.Parameters mCameraParameters;
     private final Camera.CameraInfo mCameraInfo = new Camera.CameraInfo();
     private static final int INVALID_CAMERA_ID = -1;
-    private final int mDisplayOrientation = 0;
     protected final List<CameraSize> mPreviewSizes = new ArrayList<>();
     private boolean mShowingPreview;
     private SurfaceTexture mSurfaceTexture;
     //
     private CameraSize suitableSize = null;
+    private int mOrientation = 0;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA},666);
+            if (getPackageManager().checkPermission(Manifest.permission.CAMERA, getPackageName())
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, 666);
+            }
         }
         mGLSurfaceView = findViewById(R.id.gl_show);
         mGLSurfaceView.setEGLContextClientVersion(2);
         mCameraRenderer = new CameraRenderer(this, this);
         mGLSurfaceView.setRenderer(mCameraRenderer);
         mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        final GestureDetector.SimpleOnGestureListener listener = new GestureDetector.SimpleOnGestureListener() {
+
+            @Override
+            public boolean onSingleTapUp(MotionEvent e) {
+                int w = mGLSurfaceView.getWidth();
+                int h = mGLSurfaceView.getHeight();
+                int w_3 = w / 3;
+                int h_3 = h / 3;
+                int x = (int) ((e.getX() - 5) / w_3);
+                int y = (int) ((e.getY() - 5) / h_3);
+                int index = x + y * 3;
+                mCameraRenderer.chooseOneShaderOfNine(index);
+                return true;
+            }
+        };
+        final GestureDetector gestureDetector = new GestureDetector(this, listener);
+        mGLSurfaceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -62,7 +95,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
             public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-                DLog.i("onFrameAvailable ");
+//                DLog.i("onFrameAvailable ");
                 mGLSurfaceView.queueEvent(new Runnable() {
                     @Override
                     public void run() {
@@ -84,7 +117,12 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
                     adjustCameraParameters();
                     mShowingPreview = true;
                 }
-                runnable.run(1.0f * suitableSize.getWidth() / suitableSize.getHeight());
+                mGLSurfaceView.queueEvent(new Runnable() {
+                    @Override
+                    public void run() {
+                        runnable.run(1.0f * suitableSize.getWidth() / suitableSize.getHeight(),mOrientation);
+                    }
+                });
             }
         });
     }
@@ -111,7 +149,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     @Override
     protected void onPause() {
         super.onPause();
-        if(mSurfaceTexture != null){
+        if (mSurfaceTexture != null) {
             mSurfaceTexture.setOnFrameAvailableListener(null);
             mSurfaceTexture = null;
         }
@@ -125,6 +163,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
             }
         });
         mGLSurfaceView.onPause();
+        mShowingPreview = false;
     }
 
     private void setUpPreview() {
@@ -138,7 +177,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     private void chooseCamera() {
         for (int i = 0, count = Camera.getNumberOfCameras(); i < count; i++) {
             Camera.getCameraInfo(i, mCameraInfo);
-            if (mCameraInfo.facing == Constants.FACING_BACK) {
+            if (mCameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                 mCameraId = i;
                 return;
             }
@@ -152,13 +191,12 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         }
         mCamera = Camera.open(mCameraId);
         mCameraParameters = mCamera.getParameters();
-        // Supported preview sizes
         mPreviewSizes.clear();
         for (Camera.Size size : mCameraParameters.getSupportedPreviewSizes()) {
 //            DLog.i("size->" + size.width + " " + size.height);
             mPreviewSizes.add(new CameraSize(size.width, size.height));
         }
-        mCamera.setDisplayOrientation(calcDisplayOrientation(mDisplayOrientation));
+        setCameraDisplayOrientation(this,mCamera,mCameraInfo);
     }
 
     private void adjustCameraParameters() {
@@ -169,30 +207,29 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         }
         mCameraParameters.setPreviewSize(size.getWidth(), size.getHeight());
         mCameraParameters.setPreviewFormat(ImageFormat.NV21);
-        mCameraParameters.setRotation(calcCameraRotation(mDisplayOrientation));
+//        mCameraParameters.setRotation(calcCameraRotation(mDisplayOrientation));
+//        setRotation()影响的是JPeg的那个PictureCallback，很多时候只是修改这里返回的exif信息，不会真的旋转图像数据。
         setAutoFocusInternal(true);
 //        setFlashInternal(mFlash);
         mCamera.setParameters(mCameraParameters);
-        int frameSize = size.getWidth() * size.getHeight() * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8;
-//        final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(frameSize);
-//        byte[] bytes = byteBuffer.array();
-        byte[] bytes = new byte[frameSize];
-        mCamera.addCallbackBuffer(bytes);
-        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
-            @Override
-            public void onPreviewFrame(byte[] data, Camera camera) {
-//                DLog.i("===onPreviewFrame==="+Thread.currentThread());
-                if (data != null && mCamera != null) {
-//                        DLog.i("生产: ");
-//                    mCallback.onCopyCamera1Data(data, mCameraInfo.orientation, size.getWidth(), size.getHeight(), getRatio());
-//                        DLog.i("消费: ");
-//                    mCallback.onDealCameraData(mCameraInfo.orientation);
-                    camera.addCallbackBuffer(data);
-                } else {
-                    DLog.i("data null");
-                }
-            }
-        });
+//        int frameSize = size.getWidth() * size.getHeight() * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8;
+//        byte[] bytes = new byte[frameSize];
+//        mCamera.addCallbackBuffer(bytes);
+//        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
+//            @Override
+//            public void onPreviewFrame(byte[] data, Camera camera) {
+////                DLog.i("===onPreviewFrame==="+Thread.currentThread());
+//                if (data != null && mCamera != null) {
+////                        DLog.i("生产: ");
+////                    mCallback.onCopyCamera1Data(data, mCameraInfo.orientation, size.getWidth(), size.getHeight(), getRatio());
+////                        DLog.i("消费: ");
+////                    mCallback.onDealCameraData(mCameraInfo.orientation);
+//                    camera.addCallbackBuffer(data);
+//                } else {
+//                    DLog.i("data null");
+//                }
+//            }
+//        });
         mCamera.startPreview();
     }
 
@@ -204,12 +241,34 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         }
     }
 
-    private int calcDisplayOrientation(int screenOrientationDegrees) {
-        if (mCameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            return (360 - (mCameraInfo.orientation + screenOrientationDegrees) % 360) % 360;
-        } else {  // back-facing
-            return (mCameraInfo.orientation - screenOrientationDegrees + 360) % 360;
+    public void setCameraDisplayOrientation(Activity activity, Camera camera, Camera.CameraInfo info) {
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
         }
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;   // compensate the mirror
+        } else {
+            // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        mOrientation = result;
+        DLog.i("result: "+result);
+        camera.setDisplayOrientation(result);
     }
 
     private boolean setAutoFocusInternal(boolean autoFocus) {
@@ -228,20 +287,6 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         } else {
             return false;
         }
-    }
-
-    private int calcCameraRotation(int screenOrientationDegrees) {
-        if (mCameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            return (mCameraInfo.orientation + screenOrientationDegrees) % 360;
-        } else {  // back-facing
-            final int landscapeFlip = isLandscape(screenOrientationDegrees) ? 180 : 0;
-            return (mCameraInfo.orientation + screenOrientationDegrees + landscapeFlip) % 360;
-        }
-    }
-
-    private boolean isLandscape(int orientationDegrees) {
-        return (orientationDegrees == Constants.LANDSCAPE_90 ||
-                orientationDegrees == Constants.LANDSCAPE_270);
     }
 
     boolean isCameraOpened() {
@@ -302,6 +347,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         suitableSize = cSize;
         DLog.i("suitableSize>" + suitableSize.toString());
     }
+
     @Override
     protected void onDestroy() {
         mGLSurfaceView.queueEvent(new Runnable() {

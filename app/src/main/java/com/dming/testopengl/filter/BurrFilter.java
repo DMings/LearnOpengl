@@ -1,6 +1,7 @@
 package com.dming.testopengl.filter;
 
 import android.content.Context;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 
 import com.dming.testopengl.R;
@@ -10,8 +11,8 @@ public class BurrFilter extends BaseFilter {
     private int mTime;
     private float mCurTime = 0.0f;
 
-    public BurrFilter(Context context) {
-        super(context, R.raw.burr_frg);
+    public BurrFilter(Context context,int orientation) {
+        super(context, R.raw.burr_frg, orientation);
         mTime = GLES20.glGetUniformLocation(mProgram, "inputTime");
     }
 
@@ -27,15 +28,15 @@ public class BurrFilter extends BaseFilter {
         GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
         GLES20.glUniform1f(mTime, mCurTime);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
-        GLES20.glUniform1i(mImageTexture, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
+        GLES20.glUniform1i(mImageOESTexture, 0);
         GLES20.glViewport(x, y, width, height);
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
                 GLES20.GL_UNSIGNED_SHORT, mIndexSB);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
         GLES20.glDisableVertexAttribArray(mPosition);
         GLES20.glDisableVertexAttribArray(mTextureCoordinate);
-        GLES20.glDisableVertexAttribArray(mImageTexture);
+        GLES20.glDisableVertexAttribArray(mImageOESTexture);
         GLES20.glUseProgram(0);
         mCurTime +=0.05;
         if(mCurTime > 1.0){
