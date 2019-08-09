@@ -12,7 +12,6 @@ public class MainActivity extends AppCompatActivity {
 
     private GLSurfaceView mGLSurfaceView;
     private TextureRenderer mTextureRenderer;
-    private float mTouchX, mTouchY;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
