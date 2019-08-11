@@ -14,8 +14,8 @@ import java.nio.ShortBuffer;
 
 public class BaseFilter implements IShader {
 
-    protected final ShortBuffer mIndexSB;
-    protected final FloatBuffer mTexFB;
+    protected ShortBuffer mIndexSB;
+    protected FloatBuffer mTexFB;
     protected FloatBuffer mPosFB;
     protected static final short[] VERTEX_INDEX = {
             0, 1, 3,
@@ -28,8 +28,10 @@ public class BaseFilter implements IShader {
     protected int mImageOESTexture;
     protected int mMatrix;
     protected float[] mModelMatrix = new float[4 * 4];
+    protected Context mContext;
 
-    public BaseFilter(Context context, int resFrgId,int orientation) {
+    public BaseFilter(Context context, int resFrgId, int orientation) {
+        this.mContext = context;
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
         mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
         mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, resFrgId);
@@ -40,7 +42,7 @@ public class BaseFilter implements IShader {
     }
 
     @Override
-    public void initShader(int width, int height,float viewRatio, float imgRatio) {
+    public void initShader(int width, int height, float viewRatio, float imgRatio) {
         mPosFB = ShaderHelper.arrayToFloatBuffer(new float[]{
                 -viewRatio * imgRatio, 1.0f, 0f,
                 -viewRatio * imgRatio, -1.0f, 0f,
@@ -74,7 +76,6 @@ public class BaseFilter implements IShader {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
         GLES20.glDisableVertexAttribArray(mPosition);
         GLES20.glDisableVertexAttribArray(mTextureCoordinate);
-        GLES20.glDisableVertexAttribArray(mImageOESTexture);
         GLES20.glUseProgram(0);
     }
 

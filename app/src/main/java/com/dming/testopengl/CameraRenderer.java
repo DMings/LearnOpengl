@@ -5,17 +5,17 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 
+import com.dming.testopengl.filter.AnimationFilter;
 import com.dming.testopengl.filter.BlurFilter;
 import com.dming.testopengl.filter.BurrFilter;
-import com.dming.testopengl.filter.DarkenLightFilter;
 import com.dming.testopengl.filter.EdgeFilter;
 import com.dming.testopengl.filter.IShader;
 import com.dming.testopengl.filter.LineGraph;
 import com.dming.testopengl.filter.LuminanceFilter;
+import com.dming.testopengl.filter.MultipleFilter;
 import com.dming.testopengl.filter.NoFilter;
 import com.dming.testopengl.filter.SharpenFilter;
 import com.dming.testopengl.filter.SoulFilter;
-import com.dming.testopengl.filter.SubduedLightFilter;
 import com.dming.testopengl.utils.DLog;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -36,8 +36,10 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     private SharpenFilter mSharpenFilter;
     //    private SmoothFilter mSmoothFilter;
     private BurrFilter mBurrFilter;
-    private SubduedLightFilter mSubduedLightFilter;
-    private DarkenLightFilter mDarkenLightFilter;
+    //    private SubduedLightFilter mSubduedLightFilter;
+    private AnimationFilter mAnimationFilter;
+    private MultipleFilter mMultipleFilter;
+    //    private DarkenLightFilter mDarkenLightFilter;
     //    private MosaicFilter mMosaicFilter;
     private SoulFilter mSoulFilter;
     private EdgeFilter mEdgeFilter;
@@ -65,7 +67,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mTextureId = createOESTextureObject();
         mOnPreviewListener.onSurfaceChanged(mTextureId, new GLRunnable() {
             @Override
-            public void run(float imgRatio, int orientation) {
+            public void run(GLSurfaceView glSurfaceView, float imgRatio, int orientation) {
                 mImgRatio = imgRatio;
                 float aspectRatio = mWidth > mHeight ?
                         (float) mWidth / (float) mHeight :
@@ -77,8 +79,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
                 mBlurFilter = new BlurFilter(mContext, orientation);
                 mSharpenFilter = new SharpenFilter(mContext, orientation);
                 mBurrFilter = new BurrFilter(mContext, orientation);
-                mSubduedLightFilter = new SubduedLightFilter(mContext, orientation);
-                mDarkenLightFilter = new DarkenLightFilter(mContext, orientation);
+//                mAnimationFilter = new AnimationFilter(mContext, orientation);
+//                mAnimationFilter.initPlayer(glSurfaceView);
+                mMultipleFilter = new MultipleFilter(mContext, orientation);
                 mSoulFilter = new SoulFilter(mContext, orientation);
                 mEdgeFilter = new EdgeFilter(mContext, orientation);
                 //
@@ -88,13 +91,24 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
                 mBlurFilter.initShader(mWidth / 3, mHeight / 3, aspectRatio, mImgRatio);
                 mSharpenFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
                 mBurrFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mSubduedLightFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mDarkenLightFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                mAnimationFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+                mMultipleFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
                 mSoulFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
                 mEdgeFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
             }
         });
+    }
 
+    public void onResume() {
+        if (mAnimationFilter != null) {
+            mAnimationFilter.play();
+        }
+    }
+
+    public void onPause() {
+        if (mAnimationFilter != null) {
+            mAnimationFilter.pause();
+        }
     }
 
     @Override
@@ -111,8 +125,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mBurrFilter.onDraw(mTextureId, 0, h, w, h);
         mSharpenFilter.onDraw(mTextureId, w * 2, h * 2, w, h);
         mBlurFilter.onDraw(mTextureId, w, h * 2, w, h);
-        mSubduedLightFilter.onDraw(mTextureId, w * 2, h, w, h);
-        mDarkenLightFilter.onDraw(mTextureId, w, h, w, h);
+//        mAnimationFilter.onDraw(mTextureId, w * 2, h, w, h);
+        mMultipleFilter.onDraw(mTextureId, w, h, w, h);
         mSoulFilter.onDraw(mTextureId, 0, 0, w, h);
         mEdgeFilter.onDraw(mTextureId, w * 2, 0, w, h);
 
@@ -126,7 +140,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public static int createOESTextureObject() {
+
+    private static int createOESTextureObject() {
         int[] tex = new int[1];
         //生成一个纹理
         GLES20.glGenTextures(1, tex, 0);
@@ -157,9 +172,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             } else if (index == 3) {
                 mCurShader = mBurrFilter;
             } else if (index == 4) {
-                mCurShader = mDarkenLightFilter;
+                mCurShader = mMultipleFilter;
             } else if (index == 5) {
-                mCurShader = mSubduedLightFilter;
+//                mCurShader = mAnimationFilter;
             } else if (index == 6) {
                 mCurShader = mSoulFilter;
             } else if (index == 7) {
@@ -179,8 +194,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mBlurFilter.onDestroy();
         mSharpenFilter.onDestroy();
         mBurrFilter.onDestroy();
-        mSubduedLightFilter.onDestroy();
-        mDarkenLightFilter.onDestroy();
+//        mAnimationFilter.onDestroy();
+        mMultipleFilter.onDestroy();
         mSoulFilter.onDestroy();
         mEdgeFilter.onDestroy();
         GLES20.glDeleteTextures(1, new int[]{mTextureId}, 0);
@@ -191,7 +206,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     }
 
     public interface GLRunnable {
-        void run(float imgRatio, int orientation);
+        void run(GLSurfaceView glSurfaceView, float imgRatio, int orientation);
     }
 
 }

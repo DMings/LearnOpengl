@@ -52,7 +52,7 @@ public class BlurFilter implements IShader {
     private int mIsVertical;
     private int mMatrix;
 
-    public BlurFilter(Context context,int orientation) {
+    public BlurFilter(Context context, int orientation) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
         mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
         mFBOTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_FBO);
@@ -63,7 +63,7 @@ public class BlurFilter implements IShader {
         mOESIsVertical = GLES20.glGetUniformLocation(mOESProgram, "isVertical");
         mOESMatrix = GLES20.glGetUniformLocation(mOESProgram, "inputMatrix");
 
-        mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.texture2d_frg);
+        mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.n_blur_frg);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture");
