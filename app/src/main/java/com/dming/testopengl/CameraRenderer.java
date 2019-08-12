@@ -62,41 +62,43 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
-        this.mWidth = width;
-        this.mHeight = height;
-        mTextureId = createOESTextureObject();
-        mOnPreviewListener.onSurfaceChanged(mTextureId, new GLRunnable() {
-            @Override
-            public void run(GLSurfaceView glSurfaceView, float imgRatio, int orientation) {
-                mImgRatio = imgRatio;
-                float aspectRatio = mWidth > mHeight ?
-                        (float) mWidth / (float) mHeight :
-                        (float) mHeight / (float) mWidth;
-                DLog.i("aspectRatio: " + aspectRatio + " mImgRatio: " + mImgRatio);
-                mLineGraph = new LineGraph(mContext);
-                mNoFilter = new NoFilter(mContext, orientation);
-                mLuminanceFilter = new LuminanceFilter(mContext, orientation);
-                mBlurFilter = new BlurFilter(mContext, orientation);
-                mSharpenFilter = new SharpenFilter(mContext, orientation);
-                mBurrFilter = new BurrFilter(mContext, orientation);
-//                mAnimationFilter = new AnimationFilter(mContext, orientation);
-//                mAnimationFilter.initPlayer(glSurfaceView);
-                mMultipleFilter = new MultipleFilter(mContext, orientation);
-                mSoulFilter = new SoulFilter(mContext, orientation);
-                mEdgeFilter = new EdgeFilter(mContext, orientation);
-                //
-                mLineGraph.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mNoFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mLuminanceFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mBlurFilter.initShader(mWidth / 3, mHeight / 3, aspectRatio, mImgRatio);
-                mSharpenFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mBurrFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-//                mAnimationFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mMultipleFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mSoulFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-                mEdgeFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
-            }
-        });
+        if (this.mWidth != width || this.mHeight != height) {
+            this.mWidth = width;
+            this.mHeight = height;
+//            mTextureId = createOESTexture();
+            mOnPreviewListener.onSurfaceChanged(mTextureId, new GLRunnable() {
+                @Override
+                public void run(GLSurfaceView glSurfaceView, float imgRatio, int orientation) {
+                    mImgRatio = imgRatio;
+                    float aspectRatio = mWidth > mHeight ?
+                            (float) mWidth / (float) mHeight :
+                            (float) mHeight / (float) mWidth;
+                    DLog.i("aspectRatio: " + aspectRatio + " mImgRatio: " + mImgRatio);
+                    mLineGraph = new LineGraph(mContext);
+//                    mNoFilter = new NoFilter(mContext, orientation);
+//                    mLuminanceFilter = new LuminanceFilter(mContext, orientation);
+//                    mBlurFilter = new BlurFilter(mContext, orientation);
+//                    mSharpenFilter = new SharpenFilter(mContext, orientation);
+//                    mBurrFilter = new BurrFilter(mContext, orientation);
+////                mAnimationFilter = new AnimationFilter(mContext, orientation);
+////                mAnimationFilter.initPlayer(glSurfaceView);
+//                    mMultipleFilter = new MultipleFilter(mContext, orientation);
+//                    mSoulFilter = new SoulFilter(mContext, orientation);
+//                    mEdgeFilter = new EdgeFilter(mContext, orientation);
+                    //
+                    mLineGraph.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                    mNoFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                    mLuminanceFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                    mBlurFilter.initShader(mWidth / 3, mHeight / 3, aspectRatio, mImgRatio);
+//                    mSharpenFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                    mBurrFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+////                mAnimationFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                    mMultipleFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                    mSoulFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+//                    mEdgeFilter.initShader(mWidth, mHeight, aspectRatio, mImgRatio);
+                }
+            });
+        }
     }
 
     public void onResume() {
@@ -116,24 +118,25 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         if (mImgRatio == 0) {
             return;
         }
+        DLog.i("onDrawFrame");
         long time = System.currentTimeMillis();
         int w = mWidth / 3;
         int h = mHeight / 3;
         mLineGraph.onDraw(mTextureId, mWidth, mHeight);
-        mNoFilter.onDraw(mTextureId, 0, h * 2, w, h);
-        mLuminanceFilter.onDraw(mTextureId, w, 0, w, h);
-        mBurrFilter.onDraw(mTextureId, 0, h, w, h);
-        mSharpenFilter.onDraw(mTextureId, w * 2, h * 2, w, h);
-        mBlurFilter.onDraw(mTextureId, w, h * 2, w, h);
-//        mAnimationFilter.onDraw(mTextureId, w * 2, h, w, h);
-        mMultipleFilter.onDraw(mTextureId, w, h, w, h);
-        mSoulFilter.onDraw(mTextureId, 0, 0, w, h);
-        mEdgeFilter.onDraw(mTextureId, w * 2, 0, w, h);
-
-        if (mCurShader != null) {
-            mCurShader.onDraw(mTextureId, 0, 0, mWidth, mHeight);
-        }
-        DLog.i("time: " + (System.currentTimeMillis() - time));
+//        mNoFilter.onDraw(mTextureId, 0, h * 2, w, h);
+//        mLuminanceFilter.onDraw(mTextureId, w, 0, w, h);
+//        mBurrFilter.onDraw(mTextureId, 0, h, w, h);
+//        mSharpenFilter.onDraw(mTextureId, w * 2, h * 2, w, h);
+//        mBlurFilter.onDraw(mTextureId, w, h * 2, w, h);
+////        mAnimationFilter.onDraw(mTextureId, w * 2, h, w, h);
+//        mMultipleFilter.onDraw(mTextureId, w, h, w, h);
+//        mSoulFilter.onDraw(mTextureId, 0, 0, w, h);
+//        mEdgeFilter.onDraw(mTextureId, w * 2, 0, w, h);
+//
+//        if (mCurShader != null) {
+//            mCurShader.onDraw(mTextureId, 0, 0, mWidth, mHeight);
+//        }
+//        DLog.i("time: " + (System.currentTimeMillis() - time));
         int err = GLES20.glGetError();
         if (err != 0) {
             DLog.i("gl err: " + err);
@@ -141,7 +144,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     }
 
 
-    private static int createOESTextureObject() {
+    private static int createOESTexture() {
         int[] tex = new int[1];
         //生成一个纹理
         GLES20.glGenTextures(1, tex, 0);

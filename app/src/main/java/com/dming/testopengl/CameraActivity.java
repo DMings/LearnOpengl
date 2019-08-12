@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -21,10 +20,8 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.dming.testopengl.camera.CameraSize;
-import com.dming.testopengl.camera.CameraThread;
 import com.dming.testopengl.utils.DLog;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -41,12 +38,15 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     private final Camera.CameraInfo mCameraInfo = new Camera.CameraInfo();
     private static final int INVALID_CAMERA_ID = -1;
     protected final List<CameraSize> mPreviewSizes = new ArrayList<>();
-    private boolean mShowingPreview;
+    private boolean mShowingPreview = false;
     private SurfaceTexture mSurfaceTexture;
     //
     private CameraSize suitableSize = null;
     private int mOrientation = 0;
-
+    //
+    private boolean canUpdateTexture = false;
+    //
+    private int textureId = 1;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -57,10 +57,6 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
             if (getPackageManager().checkPermission(Manifest.permission.CAMERA, getPackageName())
                     != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.CAMERA}, 666);
-            }
-            if (getPackageManager().checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, getPackageName())
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 777);
             }
         }
         mGLSurfaceView = findViewById(R.id.gl_show);
@@ -96,50 +92,8 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     @Override
     public void onSurfaceChanged(int textureId, final CameraRenderer.GLRunnable runnable) {
         DLog.i("onSurfaceChanged========================================");
-        if (mSurfaceTexture == null) {
-            mSurfaceTexture = new SurfaceTexture(textureId);
-            mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-                @Override
-                public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-                    DLog.i("onFrameAvailable");
-                    if (mSurfaceTexture != null) {
-                        mGLSurfaceView.queueEvent(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mSurfaceTexture != null) {
-                                    surfaceTexture.updateTexImage();
-                                    mGLSurfaceView.requestRender();
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-        }
-        CameraThread.getInstance().makeSurePost(new Runnable() {
-            @Override
-            public void run() {
-                DLog.i("onSurfaceChanged run111");
-                chooseCamera();
-                openCamera();
-                if (isCameraOpened() && !mShowingPreview) {
-                    DLog.i("setUpPreview run222");
-                    try {
-                        mCamera.setPreviewTexture(mSurfaceTexture);
-                    } catch (IOException e) {
-                    }
-                    adjustCameraParameters();
-                    mShowingPreview = true;
-                }
-                DLog.i("adjustCameraParameters run333");
-                mGLSurfaceView.queueEvent(new Runnable() {
-                    @Override
-                    public void run() {
-                        runnable.run(mGLSurfaceView, 1.0f * suitableSize.getWidth() / suitableSize.getHeight(), mOrientation);
-                    }
-                });
-            }
-        });
+        this.textureId = textureId;
+        startCamera(runnable);
     }
 
     @Override
@@ -147,18 +101,12 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         super.onResume();
         mGLSurfaceView.onResume();
         mCameraRenderer.onResume();
-//        myPlayer.start();
-//        CameraThread.getInstance().makeSurePost(new Runnable() {
+//        mGLSurfaceView.queueEvent(new Runnable() {
 //            @Override
 //            public void run() {
-//                chooseCamera();
-//                openCamera();
-//                DLog.i("onResume run");
-//                if (isCameraOpened() && !mShowingPreview) {
-//                    setUpPreview();
-//                    adjustCameraParameters();
-//                    mShowingPreview = true;
-//                }
+//                canUpdateTexture = true;
+//                DLog.i("canUpdateTexture-: " + canUpdateTexture);
+//                startCamera(null);
 //            }
 //        });
     }
@@ -166,11 +114,15 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     @Override
     protected void onPause() {
         super.onPause();
-        CameraThread.getInstance().stopBackgroundThread(new Runnable() {
+        mGLSurfaceView.queueEvent(new Runnable() {
             @Override
             public void run() {
+                canUpdateTexture = false;
                 if (mCamera != null) {
                     mCamera.stopPreview();
+                }
+                if (mSurfaceTexture != null) {
+                    mSurfaceTexture.release();
                 }
                 releaseCamera();
             }
@@ -178,6 +130,55 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         mCameraRenderer.onPause();
         mGLSurfaceView.onPause();
         mShowingPreview = false;
+    }
+
+    private void startCamera(final CameraRenderer.GLRunnable runnable) {
+        mGLSurfaceView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                DLog.i("textureId: " + textureId);
+                if (textureId != -1) {
+//                    mSurfaceTexture = new SurfaceTexture(textureId);
+//                    mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+//                        @Override
+//                        public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
+//                            DLog.i("onFrameAvailable: " + Thread.currentThread());
+//                            mGLSurfaceView.queueEvent(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    DLog.i("canUpdateTexture: " + canUpdateTexture);
+//                                    if (canUpdateTexture) {
+//                                        surfaceTexture.updateTexImage();
+//                                        mGLSurfaceView.requestRender();
+//                                    }
+//                                }
+//                            });
+//                        }
+//                    });
+//                    DLog.i("onSurfaceChanged run111");
+//                    if (!isCameraOpened()) {
+//                        DLog.i("chooseCamera run-");
+//                        chooseCamera();
+//                        openCamera();
+//                    }
+//                    if (isCameraOpened() && !mShowingPreview) {
+//                        DLog.i("setUpPreview run222");
+//                        try {
+//                            mCamera.setPreviewTexture(mSurfaceTexture);
+//                        } catch (IOException e) {
+//                        }
+//                        adjustCameraParameters();
+//                        mShowingPreview = true;
+//                        DLog.i("adjustCameraParameters run333");
+//                    }
+                    if (runnable != null) {
+                        runnable.run(mGLSurfaceView, 1.0f * 1080 / 1920, mOrientation);
+//                        runnable.run(mGLSurfaceView, 1.0f * suitableSize.getWidth() / suitableSize.getHeight(), mOrientation);
+                    }
+                    mGLSurfaceView.requestRender();
+                }
+            }
+        });
     }
 
     private void chooseCamera() {
@@ -212,7 +213,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
             mCamera.stopPreview();
         }
         mCameraParameters.setPreviewSize(size.getWidth(), size.getHeight());
-        mCameraParameters.setPreviewFormat(ImageFormat.NV21);
+//        mCameraParameters.setPreviewFormat(ImageFormat.NV21);
 //        mCameraParameters.setRotation(calcCameraRotation(mDisplayOrientation));
 //        setRotation()影响的是JPeg的那个PictureCallback，很多时候只是修改这里返回的exif信息，不会真的旋转图像数据。
         setAutoFocusInternal(true);
@@ -356,6 +357,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
 
     @Override
     protected void onDestroy() {
+        DLog.e("onDestroy========================================>>>");
         mGLSurfaceView.queueEvent(new Runnable() {
             @Override
             public void run() {

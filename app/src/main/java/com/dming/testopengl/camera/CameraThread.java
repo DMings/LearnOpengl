@@ -71,4 +71,8 @@ public class CameraThread {
         return mBackgroundHandler.post(r);
     }
 
+    public Handler getHandler() {
+        return mBackgroundHandler;
+    }
+
 }
