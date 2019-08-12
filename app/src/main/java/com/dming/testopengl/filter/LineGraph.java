@@ -48,6 +48,7 @@ public class LineGraph implements IShader {
         GLES20.glVertexAttribPointer(0, 3, GLES20.GL_FLOAT, false, 0, mLineFB);
         GLES20.glDrawArrays(GLES20.GL_LINES, 0, mLineFB.capacity() / 3);
         GLES20.glDisableVertexAttribArray(0);
+        GLES20.glUseProgram(0);
     }
 
     @Override
