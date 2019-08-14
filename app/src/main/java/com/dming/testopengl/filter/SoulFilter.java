@@ -12,14 +12,9 @@ public class SoulFilter extends BaseFilter {
     private int mAlpha;
     private float mScaleRatio = 1.0f;
 
-    public SoulFilter(Context context,int orientation) {
+    public SoulFilter(Context context, int orientation) {
         super(context, R.raw.soul_frg, orientation);
         mAlpha = GLES20.glGetUniformLocation(mProgram, "inputAlpha");
-    }
-
-    @Override
-    public void initShader(int width, int height, float viewRatio, float imgRatio) {
-        super.initShader(width, height, viewRatio, imgRatio);
     }
 
     @Override
@@ -61,8 +56,8 @@ public class SoulFilter extends BaseFilter {
         GLES20.glUseProgram(0);
         GLES20.glDisable(GLES20.GL_BLEND);
 
-        mScaleRatio +=0.035;
-        if(mScaleRatio > 1.6f){
+        mScaleRatio += 0.030;
+        if (mScaleRatio > 1.3f) {
             mScaleRatio = 1.0f;
         }
     }

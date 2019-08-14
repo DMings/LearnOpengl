@@ -69,15 +69,11 @@ public class BlurFilter implements IShader {
         mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture");
         mIsVertical = GLES20.glGetUniformLocation(mProgram, "isVertical");
         mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
-    }
-
-    @Override
-    public void initShader(int width, int height, float viewRatio, float imgRatio) {
         mPosFB = ShaderHelper.arrayToFloatBuffer(new float[]{
-                -viewRatio * imgRatio, 1.0f, 0f,
-                -viewRatio * imgRatio, -1.0f, 0f,
-                viewRatio * imgRatio, -1.0f, 0f,
-                viewRatio * imgRatio, 1.0f, 0f,
+                -1, 1.0f, 0f,
+                -1, -1.0f, 0f,
+                1, -1.0f, 0f,
+                1, 1.0f, 0f,
         });
         mFBOPosFB = ShaderHelper.arrayToFloatBuffer(new float[]{
                 -1, 1.0f, 0f,
@@ -85,13 +81,12 @@ public class BlurFilter implements IShader {
                 1, -1.0f, 0f,
                 1, 1.0f, 0f,
         });
-        isCreateFBO = createFBO((int) (width * viewRatio * imgRatio), height);
         Matrix.setIdentityM(mModelMatrix, 0);
     }
 
     @Override
-    public void onDraw(int textureId, int width, int height) {
-        onDraw(textureId, 0, 0, width, height);
+    public void setSize(int width, int height) {
+        isCreateFBO = createFBO(width, height);
     }
 
     @Override
@@ -101,6 +96,8 @@ public class BlurFilter implements IShader {
             drawFBO(textureId, 0, 0, mFBOWidth, mFBOHeight);
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
             draw(mFrameBufferTexture[0], x, y, width, height);
+        }else {
+            draw(textureId, x, y, width, height);
         }
     }
 

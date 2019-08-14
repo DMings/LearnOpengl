@@ -33,11 +33,6 @@ public class AnimationFilter extends BaseFilter {
     public AnimationFilter(Context context, int orientation) {
         super(context, R.raw.animation_frg, orientation);
         mIsVideo = GLES20.glGetUniformLocation(mProgram, "isVideo");
-    }
-
-    @Override
-    public void initShader(int width, int height, float viewRatio, float imgRatio) {
-        super.initShader(width, height, viewRatio, imgRatio);
         mVideoTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_90);
     }
 

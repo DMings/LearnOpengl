@@ -15,10 +15,6 @@ public class LineGraph implements IShader {
 
     public LineGraph(Context context) {
         mGraphProgram = ShaderHelper.loadProgram(context, R.raw.line_ver, R.raw.line_frg);
-    }
-
-    @Override
-    public void initShader(int width, int height,float viewRatio, float imgRatio) {
         mLineFB = ShaderHelper.arrayToFloatBuffer(new float[]{
                 -1f, 1.0f / 3, 0f,
                 1f, 1.0f / 3, 0f,
@@ -35,8 +31,8 @@ public class LineGraph implements IShader {
     }
 
     @Override
-    public void onDraw(int textureId, int width, int height) {
-        onDraw(textureId, 0, 0, width, height);
+    public void setSize(int width, int height) {
+
     }
 
     @Override

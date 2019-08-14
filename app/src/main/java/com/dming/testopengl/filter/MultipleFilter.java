@@ -15,8 +15,9 @@ public class MultipleFilter extends BaseFilter {
 
     @Override
     public void onDraw(int textureId, int x, int y, int width, int height) {
-        super.onDraw(textureId, x, y, width, height / 3);
-        super.onDraw(textureId, x, y + height / 3, width, height / 3);
-        super.onDraw(textureId, x, y + height * 2 / 3, width, height / 3);
+        int h = height / 3;
+        super.onDraw(textureId, x, y, width, h);
+        super.onDraw(textureId, x, y + h, width, height - h - h);
+        super.onDraw(textureId, x, y + height - h, width, h);
     }
 }

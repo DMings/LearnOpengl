@@ -23,6 +23,12 @@ public class CameraFilter implements IShader {
             0, 1, 3,
             2, 3, 1
     };
+    protected static final float[] VERTEX_POS = {
+            -1, 1.0f, 0f,
+            -1, -1.0f, 0f,
+            1, -1.0f, 0f,
+            1, 1.0f, 0f,
+    };
     protected int mProgram;
 
     protected int mPosition;
@@ -40,31 +46,17 @@ public class CameraFilter implements IShader {
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageOESTexture = GLES20.glGetUniformLocation(mProgram, "inputImageOESTexture");
         mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
-        mPosFB = null;
-    }
-
-    @Override
-    public void initShader(int width, int height,float viewRatio, float imgRatio) {
-        DLog.i("initShader: ");
-        mPosFB = ShaderHelper.arrayToFloatBuffer(new float[]{
-                -viewRatio * imgRatio, 1.0f, 0f,
-                -viewRatio * imgRatio, -1.0f, 0f,
-                viewRatio * imgRatio, -1.0f, 0f,
-                viewRatio * imgRatio, 1.0f, 0f,
-        });
+        mPosFB = ShaderHelper.arrayToFloatBuffer(VERTEX_POS);
         Matrix.setIdentityM(mModelMatrix, 0);
     }
 
     @Override
-    public void onDraw(int textureId, int width, int height) {
-        onDraw(textureId, 0, 0, width, height);
+    public void setSize(int width, int height) {
     }
+
 
     @Override
     public void onDraw(int textureId, int x, int y, int width, int height) {
-        if(mPosFB == null){
-            return;
-        }
         GLES20.glUseProgram(mProgram);
         GLES20.glEnableVertexAttribArray(mPosition);
         GLES20.glVertexAttribPointer(mPosition, 3,

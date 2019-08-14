@@ -22,6 +22,7 @@ import android.view.WindowManager;
 import com.dming.testopengl.camera.CameraSize;
 import com.dming.testopengl.utils.DLog;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -46,7 +47,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     //
     private boolean canUpdateTexture = false;
     //
-    private int textureId = 1;
+    private int textureId = -1;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -101,14 +102,14 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         super.onResume();
         mGLSurfaceView.onResume();
         mCameraRenderer.onResume();
-//        mGLSurfaceView.queueEvent(new Runnable() {
-//            @Override
-//            public void run() {
-//                canUpdateTexture = true;
-//                DLog.i("canUpdateTexture-: " + canUpdateTexture);
-//                startCamera(null);
-//            }
-//        });
+        mGLSurfaceView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                canUpdateTexture = true;
+                DLog.i("canUpdateTexture-: " + canUpdateTexture);
+                startCamera(null);
+            }
+        });
     }
 
     @Override
@@ -125,6 +126,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
                     mSurfaceTexture.release();
                 }
                 releaseCamera();
+                mCameraRenderer.onDestroy();
             }
         });
         mCameraRenderer.onPause();
@@ -138,42 +140,41 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
             public void run() {
                 DLog.i("textureId: " + textureId);
                 if (textureId != -1) {
-//                    mSurfaceTexture = new SurfaceTexture(textureId);
-//                    mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-//                        @Override
-//                        public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-//                            DLog.i("onFrameAvailable: " + Thread.currentThread());
-//                            mGLSurfaceView.queueEvent(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    DLog.i("canUpdateTexture: " + canUpdateTexture);
-//                                    if (canUpdateTexture) {
-//                                        surfaceTexture.updateTexImage();
-//                                        mGLSurfaceView.requestRender();
-//                                    }
-//                                }
-//                            });
-//                        }
-//                    });
-//                    DLog.i("onSurfaceChanged run111");
-//                    if (!isCameraOpened()) {
-//                        DLog.i("chooseCamera run-");
-//                        chooseCamera();
-//                        openCamera();
-//                    }
-//                    if (isCameraOpened() && !mShowingPreview) {
-//                        DLog.i("setUpPreview run222");
-//                        try {
-//                            mCamera.setPreviewTexture(mSurfaceTexture);
-//                        } catch (IOException e) {
-//                        }
-//                        adjustCameraParameters();
-//                        mShowingPreview = true;
-//                        DLog.i("adjustCameraParameters run333");
-//                    }
+                    mSurfaceTexture = new SurfaceTexture(textureId);
+                    mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+                        @Override
+                        public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
+                            DLog.i("onFrameAvailable: " + Thread.currentThread());
+                            mGLSurfaceView.queueEvent(new Runnable() {
+                                @Override
+                                public void run() {
+                                    DLog.i("canUpdateTexture: " + canUpdateTexture);
+                                    if (canUpdateTexture) {
+                                        surfaceTexture.updateTexImage();
+                                        mGLSurfaceView.requestRender();
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    DLog.i("onSurfaceChanged run111");
+                    if (!isCameraOpened()) {
+                        DLog.i("chooseCamera run-");
+                        chooseCamera();
+                        openCamera();
+                    }
+                    if (isCameraOpened() && !mShowingPreview) {
+                        DLog.i("setUpPreview run222");
+                        try {
+                            mCamera.setPreviewTexture(mSurfaceTexture);
+                        } catch (IOException e) {
+                        }
+                        adjustCameraParameters();
+                        mShowingPreview = true;
+                        DLog.i("adjustCameraParameters run333");
+                    }
                     if (runnable != null) {
-                        runnable.run(mGLSurfaceView, 1.0f * 1080 / 1920, mOrientation);
-//                        runnable.run(mGLSurfaceView, 1.0f * suitableSize.getWidth() / suitableSize.getHeight(), mOrientation);
+                        runnable.run(mGLSurfaceView, mOrientation);
                     }
                     mGLSurfaceView.requestRender();
                 }
@@ -307,7 +308,12 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         WindowManager wm = (WindowManager) this
                 .getSystemService(Context.WINDOW_SERVICE);
         Point point = new Point();
-        wm.getDefaultDisplay().getSize(point);
+        if (wm == null) {
+            point.x = 1080;
+            point.y = 1920;
+        } else {
+            wm.getDefaultDisplay().getSize(point);
+        }
         if (point.x > 700 && point.x < 800) {
             point.x = 720;
             point.y = 1280;

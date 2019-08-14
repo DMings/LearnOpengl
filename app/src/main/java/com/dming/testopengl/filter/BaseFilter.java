@@ -21,6 +21,12 @@ public class BaseFilter implements IShader {
             0, 1, 3,
             2, 3, 1
     };
+    protected static final float[] VERTEX_POS = {
+            -1, 1.0f, 0f,
+            -1, -1.0f, 0f,
+            1, -1.0f, 0f,
+            1, 1.0f, 0f,
+    };
     protected int mProgram;
 
     protected int mPosition;
@@ -34,27 +40,18 @@ public class BaseFilter implements IShader {
         this.mContext = context;
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
         mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
+        mPosFB = ShaderHelper.arrayToFloatBuffer(VERTEX_POS);
         mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, resFrgId);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageOESTexture = GLES20.glGetUniformLocation(mProgram, "inputImageOESTexture");
         mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
-    }
-
-    @Override
-    public void initShader(int width, int height, float viewRatio, float imgRatio) {
-        mPosFB = ShaderHelper.arrayToFloatBuffer(new float[]{
-                -viewRatio * imgRatio, 1.0f, 0f,
-                -viewRatio * imgRatio, -1.0f, 0f,
-                viewRatio * imgRatio, -1.0f, 0f,
-                viewRatio * imgRatio, 1.0f, 0f,
-        });
         Matrix.setIdentityM(mModelMatrix, 0);
     }
 
     @Override
-    public void onDraw(int textureId, int width, int height) {
-        onDraw(textureId, 0, 0, width, height);
+    public void setSize(int width, int height) {
+
     }
 
     @Override
