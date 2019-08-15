@@ -11,8 +11,8 @@ public class BurrFilter extends BaseFilter {
     private int mTime;
     private float mCurTime = 0.0f;
 
-    public BurrFilter(Context context,int orientation) {
-        super(context, R.raw.burr_frg, orientation);
+    public BurrFilter(Context context) {
+        super(context, R.raw.burr_frg);
         mTime = GLES20.glGetUniformLocation(mProgram, "inputTime");
     }
 

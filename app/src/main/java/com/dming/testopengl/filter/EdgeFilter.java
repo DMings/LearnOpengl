@@ -7,8 +7,8 @@ import com.dming.testopengl.R;
 
 public class EdgeFilter extends BaseFilter{
 
-    public EdgeFilter(Context context,int orientation) {
-        super(context, R.raw.edge_frg, orientation);
+    public EdgeFilter(Context context) {
+        super(context, R.raw.edge_frg);
     }
 
     @Override

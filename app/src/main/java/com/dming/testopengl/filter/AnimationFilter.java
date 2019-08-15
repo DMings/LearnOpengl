@@ -30,8 +30,8 @@ public class AnimationFilter extends BaseFilter {
     private SurfaceTexture mSurfaceTexture;
     private int mOESVideoTexture = -1;
 
-    public AnimationFilter(Context context, int orientation) {
-        super(context, R.raw.animation_frg, orientation);
+    public AnimationFilter(Context context) {
+        super(context, R.raw.animation_frg);
         mIsVideo = GLES20.glGetUniformLocation(mProgram, "isVideo");
         mVideoTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_90);
     }

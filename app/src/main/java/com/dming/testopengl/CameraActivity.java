@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class CameraActivity extends AppCompatActivity implements CameraRenderer.OnPreviewListener {
+public class CameraActivity extends AppCompatActivity implements CameraRenderer.GLRunnable {
 
     private GLSurfaceView mGLSurfaceView;
     private CameraRenderer mCameraRenderer;
@@ -39,15 +39,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     private final Camera.CameraInfo mCameraInfo = new Camera.CameraInfo();
     private static final int INVALID_CAMERA_ID = -1;
     protected final List<CameraSize> mPreviewSizes = new ArrayList<>();
-    private boolean mShowingPreview = false;
     private SurfaceTexture mSurfaceTexture;
-    //
-    private CameraSize suitableSize = null;
-    private int mOrientation = 0;
-    //
-    private boolean canUpdateTexture = false;
-    //
-    private int textureId = -1;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -91,25 +83,46 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     }
 
     @Override
-    public void onSurfaceChanged(int textureId, final CameraRenderer.GLRunnable runnable) {
-        DLog.i("onSurfaceChanged========================================");
-        this.textureId = textureId;
-        startCamera(runnable);
+    public void onSurfaceCreated(int textureId) {
+        mSurfaceTexture = new SurfaceTexture(textureId);
+        mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+            @Override
+            public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                mGLSurfaceView.queueEvent(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mSurfaceTexture != null) {
+                            mSurfaceTexture.updateTexImage();
+                            mGLSurfaceView.requestRender();
+                        }
+                    }
+                });
+            }
+        });
+        DLog.i("chooseCamera run-");
+        chooseCamera();
+        openCamera();
+        if (isCameraOpened()) {
+            DLog.i("setUpPreview run222");
+            try {
+                mCamera.setPreviewTexture(mSurfaceTexture);
+            } catch (IOException e) {
+            }
+            adjustCameraParameters();
+            DLog.i("adjustCameraParameters run333");
+        }
+    }
+
+    @Override
+    public void onSurfaceChanged(final int width, final int height) {
+        int orientation = getCameraDisplayOrientation(this, mCamera, mCameraInfo);
+        mCameraRenderer.onSurfaceCreated(width, height, orientation);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         mGLSurfaceView.onResume();
-        mCameraRenderer.onResume();
-        mGLSurfaceView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                canUpdateTexture = true;
-                DLog.i("canUpdateTexture-: " + canUpdateTexture);
-                startCamera(null);
-            }
-        });
     }
 
     @Override
@@ -118,68 +131,18 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         mGLSurfaceView.queueEvent(new Runnable() {
             @Override
             public void run() {
-                canUpdateTexture = false;
-                if (mCamera != null) {
+                if (isCameraOpened()) {
                     mCamera.stopPreview();
                 }
                 if (mSurfaceTexture != null) {
                     mSurfaceTexture.release();
+                    mSurfaceTexture = null;
                 }
                 releaseCamera();
                 mCameraRenderer.onDestroy();
             }
         });
-        mCameraRenderer.onPause();
         mGLSurfaceView.onPause();
-        mShowingPreview = false;
-    }
-
-    private void startCamera(final CameraRenderer.GLRunnable runnable) {
-        mGLSurfaceView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                DLog.i("textureId: " + textureId);
-                if (textureId != -1) {
-                    mSurfaceTexture = new SurfaceTexture(textureId);
-                    mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-                        @Override
-                        public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-                            DLog.i("onFrameAvailable: " + Thread.currentThread());
-                            mGLSurfaceView.queueEvent(new Runnable() {
-                                @Override
-                                public void run() {
-                                    DLog.i("canUpdateTexture: " + canUpdateTexture);
-                                    if (canUpdateTexture) {
-                                        surfaceTexture.updateTexImage();
-                                        mGLSurfaceView.requestRender();
-                                    }
-                                }
-                            });
-                        }
-                    });
-                    DLog.i("onSurfaceChanged run111");
-                    if (!isCameraOpened()) {
-                        DLog.i("chooseCamera run-");
-                        chooseCamera();
-                        openCamera();
-                    }
-                    if (isCameraOpened() && !mShowingPreview) {
-                        DLog.i("setUpPreview run222");
-                        try {
-                            mCamera.setPreviewTexture(mSurfaceTexture);
-                        } catch (IOException e) {
-                        }
-                        adjustCameraParameters();
-                        mShowingPreview = true;
-                        DLog.i("adjustCameraParameters run333");
-                    }
-                    if (runnable != null) {
-                        runnable.run(mGLSurfaceView, mOrientation);
-                    }
-                    mGLSurfaceView.requestRender();
-                }
-            }
-        });
     }
 
     private void chooseCamera() {
@@ -204,15 +167,12 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
 //            DLog.i("size->" + size.width + " " + size.height);
             mPreviewSizes.add(new CameraSize(size.width, size.height));
         }
-        setCameraDisplayOrientation(this, mCamera, mCameraInfo);
+
     }
 
     private void adjustCameraParameters() {
-        dealCameraSize(mCameraInfo.orientation);
+        CameraSize suitableSize = getDealCameraSize(mCameraInfo.orientation);
         final CameraSize size = suitableSize.getSrcSize();
-        if (mShowingPreview) {
-            mCamera.stopPreview();
-        }
         mCameraParameters.setPreviewSize(size.getWidth(), size.getHeight());
 //        mCameraParameters.setPreviewFormat(ImageFormat.NV21);
 //        mCameraParameters.setRotation(calcCameraRotation(mDisplayOrientation));
@@ -249,7 +209,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         }
     }
 
-    public void setCameraDisplayOrientation(Activity activity, Camera camera, Camera.CameraInfo info) {
+    public int getCameraDisplayOrientation(Activity activity, Camera camera, Camera.CameraInfo info) {
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
@@ -274,9 +234,9 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
             // back-facing
             result = (info.orientation - degrees + 360) % 360;
         }
-        mOrientation = result;
         DLog.i("result: " + result);
         camera.setDisplayOrientation(result);
+        return result;
     }
 
     private boolean setAutoFocusInternal(boolean autoFocus) {
@@ -301,8 +261,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         return mCamera != null;
     }
 
-    protected void dealCameraSize(int rotation) {
-        if (suitableSize != null) return;
+    protected CameraSize getDealCameraSize(int rotation) {
         SortedSet<CameraSize> greaterThanView = new TreeSet<>();
         List<CameraSize> lessThanView = new ArrayList<>();
         WindowManager wm = (WindowManager) this
@@ -357,8 +316,8 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
                 cSize = lessThanView.get(0);
             }
         }
-        suitableSize = cSize;
-        DLog.i("suitableSize>" + suitableSize.toString());
+        DLog.i("suitableSize>" + cSize.toString());
+        return cSize;
     }
 
     @Override

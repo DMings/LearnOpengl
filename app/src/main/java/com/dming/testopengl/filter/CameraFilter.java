@@ -17,7 +17,7 @@ import java.nio.ShortBuffer;
 public class CameraFilter implements IShader {
 
     protected final ShortBuffer mIndexSB;
-    protected final FloatBuffer mTexFB;
+    protected FloatBuffer mTexFB;
     protected FloatBuffer mPosFB;
     protected static final short[] VERTEX_INDEX = {
             0, 1, 3,
@@ -37,9 +37,8 @@ public class CameraFilter implements IShader {
     protected int mMatrix;
     protected float[] mModelMatrix = new float[4 * 4];
 
-    public CameraFilter(Context context,int orientation) {
+    public CameraFilter(Context context) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
-        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
         mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.camera_frg);
         DLog.i("mProgram: "+mProgram);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
@@ -51,7 +50,8 @@ public class CameraFilter implements IShader {
     }
 
     @Override
-    public void setSize(int width, int height) {
+    public void onChange(int width, int height,int orientation) {
+        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
     }
 
 

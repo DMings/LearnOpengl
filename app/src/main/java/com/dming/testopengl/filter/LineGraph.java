@@ -31,7 +31,7 @@ public class LineGraph implements IShader {
     }
 
     @Override
-    public void setSize(int width, int height) {
+    public void onChange(int width, int height, int orientation) {
 
     }
 

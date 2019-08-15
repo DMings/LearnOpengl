@@ -36,10 +36,9 @@ public class BaseFilter implements IShader {
     protected float[] mModelMatrix = new float[4 * 4];
     protected Context mContext;
 
-    public BaseFilter(Context context, int resFrgId, int orientation) {
+    public BaseFilter(Context context, int resFrgId) {
         this.mContext = context;
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
-        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
         mPosFB = ShaderHelper.arrayToFloatBuffer(VERTEX_POS);
         mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, resFrgId);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
@@ -50,8 +49,8 @@ public class BaseFilter implements IShader {
     }
 
     @Override
-    public void setSize(int width, int height) {
-
+    public void onChange(int width, int height, int orientation) {
+        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
     }
 
     @Override

@@ -16,7 +16,7 @@ import java.nio.ShortBuffer;
 public class BlurFilter implements IShader {
 
     private final ShortBuffer mIndexSB;
-    private final FloatBuffer mTexFB;
+    private FloatBuffer mTexFB;
     private final FloatBuffer mFBOTexFB;
     private FloatBuffer mPosFB;
     private FloatBuffer mFBOPosFB;
@@ -52,9 +52,8 @@ public class BlurFilter implements IShader {
     private int mIsVertical;
     private int mMatrix;
 
-    public BlurFilter(Context context, int orientation) {
+    public BlurFilter(Context context) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
-        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
         mFBOTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_FBO);
         mOESProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.blur_frg);
         mOESPosition = GLES20.glGetAttribLocation(mOESProgram, "inputPosition");
@@ -85,8 +84,9 @@ public class BlurFilter implements IShader {
     }
 
     @Override
-    public void setSize(int width, int height) {
+    public void onChange(int width, int height, int orientation) {
         isCreateFBO = createFBO(width, height);
+        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
     }
 
     @Override
@@ -96,7 +96,7 @@ public class BlurFilter implements IShader {
             drawFBO(textureId, 0, 0, mFBOWidth, mFBOHeight);
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
             draw(mFrameBufferTexture[0], x, y, width, height);
-        }else {
+        } else {
             draw(textureId, x, y, width, height);
         }
     }

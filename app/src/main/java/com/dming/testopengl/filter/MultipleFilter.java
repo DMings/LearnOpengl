@@ -8,8 +8,12 @@ import com.dming.testopengl.utils.ShaderHelper;
 
 public class MultipleFilter extends BaseFilter {
 
-    public MultipleFilter(Context context, int orientation) {
-        super(context, R.raw.multiple_frg, orientation);
+    public MultipleFilter(Context context) {
+        super(context, R.raw.multiple_frg);
+    }
+
+    @Override
+    public void onChange(int width, int height, int orientation) {
         mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getHTexVertexByOrientation(orientation));
     }
 

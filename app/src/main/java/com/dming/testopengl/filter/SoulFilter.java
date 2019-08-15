@@ -12,8 +12,8 @@ public class SoulFilter extends BaseFilter {
     private int mAlpha;
     private float mScaleRatio = 1.0f;
 
-    public SoulFilter(Context context, int orientation) {
-        super(context, R.raw.soul_frg, orientation);
+    public SoulFilter(Context context) {
+        super(context, R.raw.soul_frg);
         mAlpha = GLES20.glGetUniformLocation(mProgram, "inputAlpha");
     }
 
