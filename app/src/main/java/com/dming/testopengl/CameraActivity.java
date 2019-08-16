@@ -54,7 +54,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         }
         mGLSurfaceView = findViewById(R.id.gl_show);
         mGLSurfaceView.setEGLContextClientVersion(2);
-        mCameraRenderer = new CameraRenderer(this, this);
+        mCameraRenderer = new CameraRenderer(mGLSurfaceView, this);
         mGLSurfaceView.setRenderer(mCameraRenderer);
         mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         final GestureDetector.SimpleOnGestureListener listener = new GestureDetector.SimpleOnGestureListener() {

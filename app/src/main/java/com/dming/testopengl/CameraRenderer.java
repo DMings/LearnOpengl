@@ -46,10 +46,12 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     private IShader mCurShader;
     //
     private GLRunnable mGLRunnable;
+    private GLSurfaceView mGLSurfaceView;
 
 
-    CameraRenderer(Context context, GLRunnable glRunnable) {
-        this.mContext = context;
+    CameraRenderer(GLSurfaceView glSurfaceView, GLRunnable glRunnable) {
+        this.mContext = glSurfaceView.getContext();
+        this.mGLSurfaceView = glSurfaceView;
         this.mGLRunnable = glRunnable;
     }
 
@@ -65,8 +67,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mBlurFilter = new BlurFilter(mContext);
         mSharpenFilter = new SharpenFilter(mContext);
         mBurrFilter = new BurrFilter(mContext);
-//                mAnimationFilter = new AnimationFilter(mContext);
-//                mAnimationFilter.initPlayer(glSurfaceView);
+        mAnimationFilter = new AnimationFilter(mGLSurfaceView);
         mMultipleFilter = new MultipleFilter(mContext);
         mSoulFilter = new SoulFilter(mContext);
         mEdgeFilter = new EdgeFilter(mContext);
@@ -84,7 +85,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             mBlurFilter.onChange(w, h, orientation);
             mSharpenFilter.onChange(mWidth, h, orientation);
             mBurrFilter.onChange(w, h, orientation);
-//                mAnimationFilter.initShader(w, h);
+            mAnimationFilter.onChange(w, h, orientation);
             mMultipleFilter.onChange(w, h, orientation);
             mSoulFilter.onChange(w, h, orientation);
             mEdgeFilter.onChange(w, h, orientation);
@@ -98,18 +99,6 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mGLRunnable.onSurfaceChanged(width, height);
     }
 
-//    public void onResume() {
-//        if (mAnimationFilter != null) {
-//            mAnimationFilter.play();
-//        }
-//    }
-//
-//    public void onPause() {
-//        if (mAnimationFilter != null) {
-//            mAnimationFilter.pause();
-//        }
-//    }
-
     @Override
     public void onDrawFrame(GL10 gl) {
         if (mWidth == 0 || mHeight == 0) {
@@ -118,16 +107,17 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         long time = System.currentTimeMillis();
         int w = mWidth / 3;
         int h = mHeight / 3;
-        mLineGraph.onDraw(mTextureId, 0, 0, mWidth, mHeight);
-        mNoFilter.onDraw(mTextureId, 0, h * 2, w, h);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+//        mLineGraph.onDraw(mTextureId, 0, 0, mWidth, mHeight);
+        mNoFilter.onDraw(mTextureId, 0, h * 2, w, h + 1);
         mLuminanceFilter.onDraw(mTextureId, w, 0, w, h);
         mBurrFilter.onDraw(mTextureId, 0, h, w, h);
-        mSharpenFilter.onDraw(mTextureId, w * 2, h * 2, w, h);
-        mBlurFilter.onDraw(mTextureId, w, h * 2, w, h);
-//        mAnimationFilter.onDraw(mTextureId, w * 2, h, w, h);
+        mSharpenFilter.onDraw(mTextureId, w * 2, h * 2, w, h + 1);
+        mBlurFilter.onDraw(mTextureId, w, h * 2, w, h + 1);
+        mAnimationFilter.onDraw(mTextureId, w * 2, h, w + 1, h);
         mMultipleFilter.onDraw(mTextureId, w, h, w, h);
         mSoulFilter.onDraw(mTextureId, 0, 0, w, h);
-        mEdgeFilter.onDraw(mTextureId, w * 2, 0, w, h);
+        mEdgeFilter.onDraw(mTextureId, w * 2, 0, w + 1, h);
 //
         if (mCurShader != null) {
             mCurShader.onDraw(mTextureId, 0, 0, mWidth, mHeight);
@@ -173,7 +163,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             } else if (index == 4) {
                 mCurShader = mMultipleFilter;
             } else if (index == 5) {
-//                mCurShader = mAnimationFilter;
+                mCurShader = mAnimationFilter;
+                mAnimationFilter.play();
             } else if (index == 6) {
                 mCurShader = mSoulFilter;
             } else if (index == 7) {
@@ -183,6 +174,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             }
         } else {
             mCurShader = null;
+        }
+        if(index != 5){
+            mAnimationFilter.pause();
         }
     }
 
@@ -214,7 +208,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             mBurrFilter = null;
         }
         if (mAnimationFilter != null) {
-//        mAnimationFilter.onDestroy();
+            mAnimationFilter.onDestroy();
             mAnimationFilter = null;
         }
         if (mMultipleFilter != null) {
