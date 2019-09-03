@@ -1,5 +1,6 @@
 package com.dming.testopengl.test;
 
+import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.view.Surface;
 
@@ -26,7 +27,6 @@ public class EglHelper {
         if (mEglDisplay == EGL10.EGL_NO_DISPLAY) {
             throw new RuntimeException("eglGetDisplay failed");
         }
-
         //3. 初始化默认显示设备
         int[] version = new int[2];
         if (!mEgl.eglInitialize(mEglDisplay, version)) {
