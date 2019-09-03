@@ -17,7 +17,7 @@ public class EglHelper {
     private EGLSurface mEglSurface;
 
 
-    public void initEgl(Surface surface, EGLContext eglContext) {
+    public void initEgl(EGLContext eglContext,Surface surface) {
         //1. 得到Egl实例
         mEgl = (EGL10) EGLContext.getEGL();
 
@@ -79,7 +79,12 @@ public class EglHelper {
         }
 
         //7. 创建渲染的Surface
-        mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null);
+        if(surface == null){
+            mEglSurface = EGL10.EGL_NO_SURFACE;
+        }else {
+            mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null);
+        }
+//        mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null);
 
         //8. 绑定EglContext和Surface到显示设备中
         if (!mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {

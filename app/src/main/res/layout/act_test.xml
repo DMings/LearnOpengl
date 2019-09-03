@@ -7,6 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:orientation="vertical"
         android:gravity="center">
 
         <Button
@@ -15,6 +16,10 @@
             android:layout_height="wrap_content"
             android:text="111"/>
 
+        <SurfaceView
+            android:id="@+id/sv_test_2"
+            android:layout_width="match_parent"
+            android:layout_height="10dp" />
     </LinearLayout>
 
     <LinearLayout
