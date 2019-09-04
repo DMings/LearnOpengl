@@ -14,6 +14,8 @@ import android.view.View;
 
 import com.dming.testopengl.R;
 import com.dming.testopengl.filter.LineGraph;
+import com.dming.testopengl.filter.NoFilter;
+import com.dming.testopengl.filter.TestLineGraph;
 import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.FGLUtils;
 
@@ -26,8 +28,9 @@ public class TestActivity extends AppCompatActivity {
     private EglHelper mEglHelper = new EglHelper();
     private EglHelper mEglHelper2 = new EglHelper();
     private LineGraph mLineGraph;
-    private NormalFilter mNoFilter;
-    private int mFrameBufferTexture = -1;
+    private NoFilter mNoFilter;
+//    private int mFrameBufferTexture = -1;
+    private int mOESTexture = 1;
     private Handler mHandler;
     private HandlerThread mHandlerThread;
 
@@ -44,12 +47,13 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.btn_test_1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DLog.i("mFrameBufferTexture draw: " + mFrameBufferTexture);
-                if (mFrameBufferTexture != -1) {
+                DLog.i("mOESTexture draw: " + mOESTexture);
+                if (mOESTexture != -1) {
+                    mSurfaceTexture.updateTexImage();
 //                    GLES20.glClearColor(1,1,1,1);
                     GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 //                    mLineGraph.onDraw(0,0,0,200,200);
-                    mNoFilter.onDraw(mFrameBufferTexture, 0, 0, 200, 200);
+                    mNoFilter.onDraw(mOESTexture, 0, 0, 200, 200);
                     mEglHelper.swapBuffers();
                     FGLUtils.glCheckErr();
                 }
@@ -62,7 +66,7 @@ public class TestActivity extends AppCompatActivity {
                 mEglHelper.initEgl(null, holder.getSurface());
                 FGLUtils.glCheckErr();
                 mLineGraph = new LineGraph(TestActivity.this);
-                mNoFilter = new NormalFilter(TestActivity.this);
+                mNoFilter = new NoFilter(TestActivity.this);
                 testTwoThread();
             }
 
@@ -92,28 +96,29 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void run() {
                 DLog.i("HandlerThread: " + Thread.currentThread().getName() + " >>> ");
-                mSurfaceTexture = new SurfaceTexture(0);
+                mSurfaceTexture = new SurfaceTexture(mOESTexture);
                 mSurface = new Surface(mSurfaceTexture);
                 mEglHelper2.initEgl(mEglHelper.getEglContext(), mSurface);
                 FGLUtils.glCheckErr();
-                LineGraph mLineGraph = new LineGraph(TestActivity.this);
-                NormalFilter mNoFilter = new NormalFilter(TestActivity.this);
-                mNoFilter.onChange(200, 200, 0);
-                int[] ids = FGLUtils.createFBO(200, 200);
-                DLog.i("ids>>>" + ids);
-                if (ids != null) {
-                    int frameBuffer = ids[0];
-                    mFrameBufferTexture = ids[1];
-                    GLES20.glClearColor(1, 1, 1, 1);
-                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer);
-                    GLES20.glClearColor(0, 0, 1, 1);
-                    mLineGraph.onDraw(0, 0, 0, 200, 200);
-                    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-                    FGLUtils.glCheckErr();
+                GLES20.glViewport(0, 0, 200, 200);
+                TestLineGraph mLineGraph = new TestLineGraph(TestActivity.this);
+//                NormalFilter mNoFilter = new NormalFilter(TestActivity.this);
+//                mNoFilter.onChange(200, 200, 0);
+//                int[] ids = FGLUtils.createFBO(200, 200);
+//                DLog.i("ids>>>" + ids);
+//                if (ids != null) {
+//                    int frameBuffer = ids[0];
+//                    mFrameBufferTexture = ids[1];
+//                    GLES20.glClearColor(1, 1, 1, 1);
+//                    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer);
+                GLES20.glClearColor(0, 0, 1, 1);
+                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+                mLineGraph.onDraw(0, 0, 0, 200, 200);
+//                    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+                FGLUtils.glCheckErr();
 //                    mNoFilter.onDraw(mFrameBufferTexture, 0, 0, 200, 200);
-                    mEglHelper2.swapBuffers();
-                }
+                mEglHelper2.swapBuffers();
+//                }
             }
         });
     }
