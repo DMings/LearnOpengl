@@ -1,18 +1,19 @@
 package com.dming.testopengl.test;
 
+import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
 import com.dming.testopengl.R;
 import com.dming.testopengl.filter.LineGraph;
-import com.dming.testopengl.filter.NoFilter;
 import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.FGLUtils;
 
@@ -20,6 +21,8 @@ public class TestActivity extends AppCompatActivity {
 
     private SurfaceView mTestSv;
     private SurfaceView mTestSv2;
+    private SurfaceTexture mSurfaceTexture;
+    private Surface mSurface;
     private EglHelper mEglHelper = new EglHelper();
     private EglHelper mEglHelper2 = new EglHelper();
     private LineGraph mLineGraph;
@@ -34,7 +37,6 @@ public class TestActivity extends AppCompatActivity {
         setContentView(R.layout.act_test);
         mTestSv = findViewById(R.id.sv_test);
         mTestSv2 = findViewById(R.id.sv_test_2);
-
         mHandlerThread = new HandlerThread("gl2");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
@@ -89,25 +91,27 @@ public class TestActivity extends AppCompatActivity {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                DLog.i("HandlerThread: " + Thread.currentThread().getName() + " >>> "+mTestSv2.getHolder().getSurface());
-                mEglHelper2.initEgl(mEglHelper.getEglContext(), mTestSv2.getHolder().getSurface());
+                DLog.i("HandlerThread: " + Thread.currentThread().getName() + " >>> ");
+                mSurfaceTexture = new SurfaceTexture(0);
+                mSurface = new Surface(mSurfaceTexture);
+                mEglHelper2.initEgl(mEglHelper.getEglContext(), mSurface);
                 FGLUtils.glCheckErr();
                 LineGraph mLineGraph = new LineGraph(TestActivity.this);
                 NormalFilter mNoFilter = new NormalFilter(TestActivity.this);
-                mNoFilter.onChange(200,200,0);
+                mNoFilter.onChange(200, 200, 0);
                 int[] ids = FGLUtils.createFBO(200, 200);
-                DLog.i("ids>>>"+ids);
+                DLog.i("ids>>>" + ids);
                 if (ids != null) {
                     int frameBuffer = ids[0];
                     mFrameBufferTexture = ids[1];
-                    GLES20.glClearColor(1,1,1,1);
+                    GLES20.glClearColor(1, 1, 1, 1);
                     GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffer);
-                    GLES20.glClearColor(0,0,1,1);
+                    GLES20.glClearColor(0, 0, 1, 1);
                     mLineGraph.onDraw(0, 0, 0, 200, 200);
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
                     FGLUtils.glCheckErr();
-                    mNoFilter.onDraw(mFrameBufferTexture,0,0,200,200);
+//                    mNoFilter.onDraw(mFrameBufferTexture, 0, 0, 200, 200);
                     mEglHelper2.swapBuffers();
                 }
             }
@@ -116,8 +120,14 @@ public class TestActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if(mHandlerThread != null){
+        if (mHandlerThread != null) {
             mHandlerThread.quit();
+        }
+        if (mSurfaceTexture != null) {
+            mSurfaceTexture.release();
+        }
+        if (mSurface != null) {
+            mSurface.release();
         }
         super.onDestroy();
     }
