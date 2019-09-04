@@ -19,7 +19,7 @@
         <SurfaceView
             android:id="@+id/sv_test_2"
             android:layout_width="match_parent"
-            android:layout_height="10dp" />
+            android:layout_height="100dp" />
     </LinearLayout>
 
     <LinearLayout

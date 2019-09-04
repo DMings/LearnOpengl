@@ -81,10 +81,10 @@ public class EglHelper {
         //7. 创建渲染的Surface
         if(surface == null){
             mEglSurface = EGL10.EGL_NO_SURFACE;
+//            mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig,surface,null);
         }else {
             mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null);
         }
-//        mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null);
 
         //8. 绑定EglContext和Surface到显示设备中
         if (!mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {

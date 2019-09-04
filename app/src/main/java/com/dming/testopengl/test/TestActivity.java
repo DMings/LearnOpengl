@@ -44,8 +44,9 @@ public class TestActivity extends AppCompatActivity {
             public void onClick(View v) {
                 DLog.i("mFrameBufferTexture draw: " + mFrameBufferTexture);
                 if (mFrameBufferTexture != -1) {
-                    GLES20.glClearColor(1,1,1,1);
+//                    GLES20.glClearColor(1,1,1,1);
                     GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+//                    mLineGraph.onDraw(0,0,0,200,200);
                     mNoFilter.onDraw(mFrameBufferTexture, 0, 0, 200, 200);
                     mEglHelper.swapBuffers();
                     FGLUtils.glCheckErr();
@@ -92,8 +93,8 @@ public class TestActivity extends AppCompatActivity {
                 mEglHelper2.initEgl(mEglHelper.getEglContext(), mTestSv2.getHolder().getSurface());
                 FGLUtils.glCheckErr();
                 LineGraph mLineGraph = new LineGraph(TestActivity.this);
-//                NormalFilter mNoFilter = new NormalFilter(TestActivity.this);
-//                mNoFilter.onChange(200,200,0);
+                NormalFilter mNoFilter = new NormalFilter(TestActivity.this);
+                mNoFilter.onChange(200,200,0);
                 int[] ids = FGLUtils.createFBO(200, 200);
                 DLog.i("ids>>>"+ids);
                 if (ids != null) {
@@ -106,8 +107,8 @@ public class TestActivity extends AppCompatActivity {
                     mLineGraph.onDraw(0, 0, 0, 200, 200);
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
                     FGLUtils.glCheckErr();
-//                    mNoFilter.onDraw(mFrameBufferTexture,0,0,200,200);
-//                    mEglHelper2.swapBuffers();
+                    mNoFilter.onDraw(mFrameBufferTexture,0,0,200,200);
+                    mEglHelper2.swapBuffers();
                 }
             }
         });
