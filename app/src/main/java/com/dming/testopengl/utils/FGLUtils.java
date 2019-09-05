@@ -55,9 +55,35 @@ public class FGLUtils {
         return tex[0];
     }
 
+    public static int createTexture() {
+        int[] tex = new int[1];
+        GLES20.glGenTextures(1, tex, 0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tex[0]);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_NEAREST);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        return tex[0];
+    }
+
     public static void glCheckErr() {
         int err = GLES20.glGetError();
         DLog.i("checkErr: " + err);
+    }
+
+    public static void glCheckErr(String tag) {
+        int err = GLES20.glGetError();
+        DLog.i(tag + " > checkErr: " + err);
+    }
+
+    public static void glCheckErr(int tag) {
+        int err = GLES20.glGetError();
+        DLog.i(tag + " > checkErr: " + err);
     }
 
 }

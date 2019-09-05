@@ -19,6 +19,8 @@ import com.dming.testopengl.filter.TestLineGraph;
 import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.FGLUtils;
 
+import java.nio.ByteBuffer;
+
 public class TestActivity extends AppCompatActivity {
 
     private SurfaceView mTestSv;
@@ -28,11 +30,12 @@ public class TestActivity extends AppCompatActivity {
     private EglHelper mEglHelper = new EglHelper();
     private EglHelper mEglHelper2 = new EglHelper();
     private LineGraph mLineGraph;
-    private NoFilter mNoFilter;
-//    private int mFrameBufferTexture = -1;
+    private NormalFilter mNoFilter;
+    //    private int mFrameBufferTexture = -1;
     private int mOESTexture = -1;
     private Handler mHandler;
     private HandlerThread mHandlerThread;
+    private int mTestTexture = -1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,14 +50,14 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.btn_test_1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DLog.i("mOESTexture draw: " + mOESTexture);
-                if (mOESTexture != -1) {
-                    mSurfaceTexture.updateTexImage();
-                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                    mNoFilter.onDraw(mOESTexture, 0, 0, 200, 200);
-                    mEglHelper.swapBuffers();
-                    FGLUtils.glCheckErr();
-                }
+//                DLog.i("mOESTexture draw: " + mOESTexture);
+//                if (mOESTexture != -1) {
+//                    mSurfaceTexture.updateTexImage();
+//                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+//                    mNoFilter.onDraw(mOESTexture, 0, 0, 200, 200);
+//                    mEglHelper.swapBuffers();
+//                    FGLUtils.glCheckErr();
+//                }
             }
         });
         mTestSv.getHolder().addCallback(new SurfaceHolder.Callback() {
@@ -63,22 +66,39 @@ public class TestActivity extends AppCompatActivity {
                 DLog.i("EglHelper surfaceCreated: " + Thread.currentThread().getName());
                 mEglHelper.initEgl(null, holder.getSurface());
                 mOESTexture = FGLUtils.createOESTexture();
+                mTestTexture = FGLUtils.createTexture();
                 FGLUtils.glCheckErr();
                 mLineGraph = new LineGraph(TestActivity.this);
-                mNoFilter = new NoFilter(TestActivity.this);
+                mNoFilter = new NormalFilter(TestActivity.this);
                 testTwoThread();
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                DLog.i("EglHelper surfaceChanged");
+                DLog.i("EglHelper surfaceChanged: "+mTestTexture);
                 mLineGraph.onChange(width, height, 0);
                 mNoFilter.onChange(width, height, 0);
                 GLES20.glClearColor(1, 1, 1, 1);
                 mLineGraph.onDraw(0, 0, 0, width, height);
+                FGLUtils.glCheckErr(11);
+                ByteBuffer byteBuffer = ByteBuffer.allocate(200 * 200 * 4);
+                for (int i = 0; i < 200 * 200; i += 4) {
+                    byteBuffer.put((byte) 0xff);
+                    byteBuffer.put((byte) 0xff);
+                    byteBuffer.put( (byte) 0x00);
+                    byteBuffer.put((byte) 0xff);
+                }
+                byteBuffer.position(0);
+                GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTestTexture);
+                FGLUtils.glCheckErr(22);
+                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 200, 200, 0,
+                        GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, byteBuffer);
+                FGLUtils.glCheckErr(33);
+                mNoFilter.onDraw(mTestTexture, 0, 0, 200, 200);
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+                FGLUtils.glCheckErr(44);
                 mEglHelper.swapBuffers();
-                int err = GLES20.glGetError();
-                DLog.i("EglHelper surfaceChanged err: " + err);
             }
 
             @Override
@@ -96,7 +116,7 @@ public class TestActivity extends AppCompatActivity {
             public void run() {
                 mSurfaceTexture = new SurfaceTexture(mOESTexture);
                 mSurface = new Surface(mSurfaceTexture);
-                mSurfaceTexture.setDefaultBufferSize(200,200);
+                mSurfaceTexture.setDefaultBufferSize(200, 200);
                 mEglHelper2.initEgl(mEglHelper.getEglContext(), mSurface);
                 FGLUtils.glCheckErr();
                 GLES20.glViewport(0, 0, 200, 200);
