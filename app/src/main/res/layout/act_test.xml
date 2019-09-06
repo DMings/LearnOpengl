@@ -16,8 +16,8 @@
             android:layout_height="wrap_content"
             android:text="111"/>
 
-        <SurfaceView
-            android:id="@+id/sv_test_2"
+        <ImageView
+            android:id="@+id/iv_test"
             android:layout_width="match_parent"
             android:layout_height="100dp" />
     </LinearLayout>

@@ -1,5 +1,6 @@
 package com.dming.testopengl.test;
 
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.dming.testopengl.R;
 import com.dming.testopengl.filter.LineGraph;
@@ -20,11 +22,12 @@ import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.FGLUtils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class TestActivity extends AppCompatActivity {
 
     private SurfaceView mTestSv;
-    private SurfaceView mTestSv2;
+    private ImageView mTestIv;
     private SurfaceTexture mSurfaceTexture;
     private Surface mSurface;
     private EglHelper mEglHelper = new EglHelper();
@@ -42,7 +45,7 @@ public class TestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_test);
         mTestSv = findViewById(R.id.sv_test);
-        mTestSv2 = findViewById(R.id.sv_test_2);
+        mTestIv = findViewById(R.id.iv_test);
         mHandlerThread = new HandlerThread("gl2");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
@@ -81,22 +84,35 @@ public class TestActivity extends AppCompatActivity {
                 GLES20.glClearColor(1, 1, 1, 1);
                 mLineGraph.onDraw(0, 0, 0, width, height);
                 FGLUtils.glCheckErr(11);
-                ByteBuffer byteBuffer = ByteBuffer.allocate(200 * 200 * 4);
-                for (int i = 0; i < 200 * 200; i += 4) {
-                    byteBuffer.put((byte) 0xff);
-                    byteBuffer.put((byte) 0xff);
-                    byteBuffer.put( (byte) 0x00);
-                    byteBuffer.put((byte) 0xff);
+                int w = 200;
+                int h = 200;
+                int fmt = 4;
+                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(w * h * fmt);
+                byteBuffer.order(ByteOrder.nativeOrder());
+                byteBuffer.position(0);
+                for (int i = 0; i < w * h * fmt; i += fmt) {
+                    byteBuffer.put((byte) 0x00);
+                    byteBuffer.put((byte) 0x00);
+                    byteBuffer.put( (byte) 0xff);
+                    byteBuffer.put((byte) 0xFF);
                 }
                 byteBuffer.position(0);
                 GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
                 GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTestTexture);
                 FGLUtils.glCheckErr(22);
-                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 200, 200, 0,
+                GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, w, h, 0,
                         GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, byteBuffer);
                 FGLUtils.glCheckErr(33);
-                mNoFilter.onDraw(mTestTexture, 0, 0, 200, 200);
+                mNoFilter.onDraw(mTestTexture, 0, 0, w, h);
                 GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+                ByteBuffer readByte = ByteBuffer.allocateDirect(w * h * fmt);
+                GLES20.glReadPixels(0,0,w,h,GLES20.GL_RGBA,GLES20.GL_UNSIGNED_BYTE,readByte);
+                DLog.i("readByte 0: "+readByte.get(0) + " 1: " + readByte.get(1)+ " 2: " + readByte.get(2)+ " 3: " + readByte.get(3));
+                Bitmap bitmap = Bitmap.createBitmap(w,h, Bitmap.Config.ARGB_8888);
+                bitmap.copyPixelsFromBuffer(readByte);
+
+                mTestIv.setImageBitmap(bitmap);
                 FGLUtils.glCheckErr(44);
                 mEglHelper.swapBuffers();
             }
