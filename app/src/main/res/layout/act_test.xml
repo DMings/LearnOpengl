@@ -27,7 +27,7 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <SurfaceView
+        <com.dming.testopengl.test.FSurfaceView
             android:id="@+id/sv_test"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

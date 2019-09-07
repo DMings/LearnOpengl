@@ -78,7 +78,9 @@ public class FGLUtils {
 
     public static void glCheckErr(String tag) {
         int err = GLES20.glGetError();
-        DLog.i(tag + " > checkErr: " + err);
+        if (err != 0) {
+            DLog.i(tag + " > checkErr: " + err);
+        }
     }
 
     public static void glCheckErr(int tag) {

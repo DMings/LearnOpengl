@@ -102,7 +102,7 @@ public class EglHelper {
         }
     }
 
-    public void destoryEgl() {
+    public void destroyEgl() {
         if (mEgl != null) {
             if (mEglSurface != null && mEglSurface != EGL10.EGL_NO_SURFACE) {
                 mEgl.eglMakeCurrent(mEglDisplay, EGL10.EGL_NO_SURFACE,
