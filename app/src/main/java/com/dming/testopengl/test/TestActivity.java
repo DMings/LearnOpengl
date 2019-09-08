@@ -19,6 +19,8 @@ import com.dming.testopengl.utils.FGLUtils;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import javax.microedition.khronos.egl.EGL10;
+
 public class TestActivity extends AppCompatActivity {
 
     private ImageView mTestIv;
@@ -57,6 +59,15 @@ public class TestActivity extends AppCompatActivity {
                 FGLUtils.glCheckErr();
                 mLineGraph = new LineGraph(TestActivity.this);
                 mNoFilter = new NormalFilter(TestActivity.this);
+
+                int w = 200;
+                int h = 200;
+                int fmt = 4;
+                mSurfaceTexture = new SurfaceTexture(0);
+                mSurface = new Surface(mSurfaceTexture);
+                mSurfaceTexture.setDefaultBufferSize(w, h);
+                mEglHelper2.initEgl(mFSurfaceView.getEglContext(), mSurface);
+
                 testTwoThread();
             }
 
@@ -116,10 +127,11 @@ public class TestActivity extends AppCompatActivity {
                 int w = 200;
                 int h = 200;
                 int fmt = 4;
-                mSurfaceTexture = new SurfaceTexture(0);
-                mSurface = new Surface(mSurfaceTexture);
-                mSurfaceTexture.setDefaultBufferSize(w, h);
-                mEglHelper2.initEgl(mFSurfaceView.getEglContext(), mSurface);
+//                mSurfaceTexture = new SurfaceTexture(0);
+//                mSurface = new Surface(mSurfaceTexture);
+//                mSurfaceTexture.setDefaultBufferSize(w, h);
+//                mEglHelper2.initEgl(mFSurfaceView.getEglContext(), mSurface);
+                mEglHelper2.glBindThread();
                 mTexture = FGLUtils.createTexture();
                 GLES20.glViewport(0, 0, w, h);
                 GLES20.glClearColor(0, 0, 1, 1);

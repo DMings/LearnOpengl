@@ -1,6 +1,5 @@
 package com.dming.testopengl.test;
 
-import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.view.Surface;
 
@@ -18,7 +17,7 @@ public class EglHelper {
     private EGLSurface mEglSurface;
 
 
-    public void initEgl(EGLContext eglContext,Surface surface) {
+    public void initEgl(EGLContext eglContext, Surface surface) {
         //1. 得到Egl实例
         mEgl = (EGL10) EGLContext.getEGL();
 
@@ -73,22 +72,26 @@ public class EglHelper {
                 EGL10.EGL_NONE
         };
         if (eglContext == null) {
-            mEglContext =  mEgl.eglCreateContext(mEglDisplay, eglConfig, EGL10.EGL_NO_CONTEXT, contextAttr);
+            mEglContext = mEgl.eglCreateContext(mEglDisplay, eglConfig, EGL10.EGL_NO_CONTEXT, contextAttr);
         } else {
             mEglContext = mEgl.eglCreateContext(mEglDisplay, eglConfig, eglContext, contextAttr);
         }
 
         //7. 创建渲染的Surface
-        if(surface == null){
+        if (surface == null) {
             mEglSurface = EGL10.EGL_NO_SURFACE;
 //            mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig,surface,null);
-        }else {
+        } else {
             mEglSurface = mEgl.eglCreateWindowSurface(mEglDisplay, eglConfig, surface, null);
         }
+    }
 
+    public void glBindThread() {
         //8. 绑定EglContext和Surface到显示设备中
-        if (!mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
-            throw new RuntimeException("eglMakeCurrent fail");
+        if (mEglDisplay != null && mEglSurface != null && mEglContext != null) {
+            if (!mEgl.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
+                throw new RuntimeException("eglMakeCurrent fail");
+            }
         }
     }
 

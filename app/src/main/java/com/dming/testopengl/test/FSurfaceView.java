@@ -58,8 +58,9 @@ public class FSurfaceView extends SurfaceView {
                 @Override
                 public void run() {
                     if (mEglHelper != null) {
-                        mGLState = GLState.INIT;
                         mEglHelper.initEgl(null, surface);
+                        mEglHelper.glBindThread();
+                        mGLState = GLState.INIT;
                     }
                 }
             });
