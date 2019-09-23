@@ -19,7 +19,6 @@ import com.dming.testopengl.utils.FGLUtils;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import javax.microedition.khronos.egl.EGL10;
 
 public class TestActivity extends AppCompatActivity {
 
@@ -44,7 +43,6 @@ public class TestActivity extends AppCompatActivity {
         mHandlerThread = new HandlerThread("gl2");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
-
         findViewById(R.id.btn_test_1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
