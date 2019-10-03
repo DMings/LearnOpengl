@@ -40,6 +40,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     private static final int INVALID_CAMERA_ID = -1;
     protected final List<CameraSize> mPreviewSizes = new ArrayList<>();
     private SurfaceTexture mSurfaceTexture;
+    private float[] mCameraMatrix = new float[16];
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -83,7 +84,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     }
 
     @Override
-    public void onSurfaceCreated(int textureId) {
+    public void onSurfaceCreated(final int textureId) {
         mSurfaceTexture = new SurfaceTexture(textureId);
         mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
@@ -93,6 +94,8 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
                     public void run() {
                         if (mSurfaceTexture != null) {
                             mSurfaceTexture.updateTexImage();
+                            mSurfaceTexture.getTransformMatrix(mCameraMatrix);
+                            mCameraRenderer.setTexMatrix(mCameraMatrix);
                             mGLSurfaceView.requestRender();
                         }
                     }
@@ -115,8 +118,8 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
 
     @Override
     public void onSurfaceChanged(final int width, final int height) {
-        int orientation = getCameraDisplayOrientation(this, mCamera, mCameraInfo);
-        mCameraRenderer.onSurfaceCreated(width, height, orientation);
+        setCameraDisplayOrientation(this, mCamera, mCameraInfo);
+        mCameraRenderer.onSurfaceCreated(width, height);
     }
 
     @Override
@@ -127,7 +130,6 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
 
     @Override
     protected void onPause() {
-        super.onPause();
         mGLSurfaceView.queueEvent(new Runnable() {
             @Override
             public void run() {
@@ -143,6 +145,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
             }
         });
         mGLSurfaceView.onPause();
+        super.onPause();
     }
 
     private void chooseCamera() {
@@ -209,7 +212,7 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         }
     }
 
-    public int getCameraDisplayOrientation(Activity activity, Camera camera, Camera.CameraInfo info) {
+    public void setCameraDisplayOrientation(Activity activity, Camera camera, Camera.CameraInfo info) {
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
@@ -236,7 +239,6 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         }
         DLog.i("result: " + result);
         camera.setDisplayOrientation(result);
-        return result;
     }
 
     private boolean setAutoFocusInternal(boolean autoFocus) {

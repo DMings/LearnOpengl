@@ -1,9 +1,10 @@
-package com.dming.testopengl.filter;
+package com.dming.testopengl.filter.test;
 
 import android.content.Context;
 import android.opengl.GLES20;
 
 import com.dming.testopengl.R;
+import com.dming.testopengl.filter.IShader;
 import com.dming.testopengl.utils.ShaderHelper;
 
 import java.nio.FloatBuffer;
@@ -33,12 +34,12 @@ public class TestLineGraph implements IShader {
     }
 
     @Override
-    public void onChange(int width, int height, int orientation) {
+    public void onChange(int width, int height) {
 
     }
 
     @Override
-    public void onDraw(int textureId, int x, int y, int width, int height) {
+    public void onDraw(int textureId, float[] mTexMatrix, int x, int y, int width, int height) {
         GLES20.glViewport(x, y, width, height);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glUseProgram(mGraphProgram);

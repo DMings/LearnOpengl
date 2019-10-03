@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 import android.view.Surface;
 
 import com.dming.testopengl.R;
@@ -29,16 +30,18 @@ public class AnimationFilter extends BaseFilter {
     private SurfaceTexture mSurfaceTexture;
     private int mOESVideoTexture = -1;
     private boolean mCanUpdate = false;
+    private float[] mIdentityMatrix = new float[4 * 4];
 
     public AnimationFilter(GLSurfaceView glSurfaceView) {
         super(glSurfaceView.getContext(), R.raw.animation_frg);
         mIsVideo = GLES20.glGetUniformLocation(mProgram, "isVideo");
         mVideoTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_90);
         initPlayer(glSurfaceView);
+        Matrix.setIdentityM(mIdentityMatrix, 0);
     }
 
     @Override
-    public void onDraw(int textureId, int x, int y, int width, int height) {
+    public void onDraw(int textureId, float[] texMatrix, int x, int y, int width, int height) {
         if (mCanUpdate) {
             GLES20.glEnable(GLES20.GL_BLEND);
             GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
@@ -50,7 +53,8 @@ public class AnimationFilter extends BaseFilter {
             GLES20.glEnableVertexAttribArray(mTextureCoordinate);
             GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
                     GLES20.GL_FLOAT, false, 0, mTexFB);
-            GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
+            GLES20.glUniformMatrix4fv(uMvpMatrix, 1, false, mMvpMatrix, 0);
+            GLES20.glUniformMatrix4fv(uTexMatrix, 1, false, texMatrix, 0);
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
             GLES20.glUniform1i(mImageOESTexture, 0);
 
@@ -64,6 +68,7 @@ public class AnimationFilter extends BaseFilter {
             GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
                     GLES20.GL_FLOAT, false, 0, mVideoTexFB);
             GLES20.glUniform1i(mIsVideo, 1);
+            GLES20.glUniformMatrix4fv(uTexMatrix, 1, false, mIdentityMatrix, 0);
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mOESVideoTexture);
             GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
                     GLES20.GL_UNSIGNED_SHORT, mIndexSB);
@@ -74,7 +79,7 @@ public class AnimationFilter extends BaseFilter {
             GLES20.glDisableVertexAttribArray(mTextureCoordinate);
             GLES20.glUseProgram(0);
         } else {
-            super.onDraw(textureId, x, y, width, height);
+            super.onDraw(textureId, texMatrix, x, y, width, height);
         }
 
     }
@@ -87,58 +92,60 @@ public class AnimationFilter extends BaseFilter {
     }
 
     public void play() {
+        DLog.i("play>>>" + mPlayer);
         if (mPlayer != null) {
             if (!mPlayer.isPlaying()) {
-                mPlayer.setLooping(true);
                 mPlayer.start();
             }
         }
     }
 
     public void pause() {
-        if (null != mPlayer) {
+        DLog.i("pause>>>" + mPlayer);
+        if (mPlayer != null) {
             mPlayer.pause();
         }
     }
 
 
-    public void initPlayer(final GLSurfaceView glSurfaceView) {
-        if (mPlayer == null) {
-            mPlayer = new MediaPlayer();
-            try {
-                mPlayer.reset();
-                AssetFileDescriptor afd = this.mContext.getAssets().openFd("animation.mp4");
-                mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                mPlayer.prepare();
-            } catch (IOException e) {
-                DLog.i("Play Error!!!");
-            }
-            mOESVideoTexture = createOESTextureObject();
-            mSurfaceTexture = new SurfaceTexture(mOESVideoTexture);
-            mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-                @Override
-                public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-                    if (mSurfaceTexture != null) {
-                        glSurfaceView.queueEvent(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mSurfaceTexture != null) {
-                                    mSurfaceTexture.updateTexImage();
-                                    mCanUpdate = true;
-                                }
+    private void initPlayer(final GLSurfaceView glSurfaceView) {
+        DLog.i("initPlayer>>>");
+        mPlayer = new MediaPlayer();
+        mOESVideoTexture = createOESTexture();
+        mSurfaceTexture = new SurfaceTexture(mOESVideoTexture);
+        mSurfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+            @Override
+            public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
+                if (mSurfaceTexture != null) {
+                    glSurfaceView.queueEvent(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mSurfaceTexture != null) {
+                                mSurfaceTexture.updateTexImage();
+                                mCanUpdate = true;
                             }
-                        });
-                    }
+                        }
+                    });
                 }
-            });
-            mSurface = new Surface(mSurfaceTexture);
-            mPlayer.setSurface(mSurface);
-            DLog.i("Video oesTexture: " + mOESVideoTexture);
+            }
+        });
+        mSurface = new Surface(mSurfaceTexture);
+        mPlayer.setSurface(mSurface);
+        DLog.i("Video oesTexture: " + mOESVideoTexture);
+        mPlayer.reset();
+        try {
+            AssetFileDescriptor afd = this.mContext.getAssets().openFd("animation.mp4");
+            mPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            mPlayer.prepare();
+        } catch (IOException e) {
+            DLog.i("Play Error!!!");
         }
+        mPlayer.setLooping(true);
     }
 
 
-    public void release() {
+    private void release() {
+        DLog.i("release>>>" + mPlayer);
         mPlayer.stop();
         if (mSurfaceTexture != null) {
             mSurfaceTexture.setOnFrameAvailableListener(null);
@@ -151,7 +158,7 @@ public class AnimationFilter extends BaseFilter {
     }
 
 
-    public int createOESTextureObject() {
+    public int createOESTexture() {
         int[] tex = new int[1];
         //生成一个纹理
         GLES20.glGenTextures(1, tex, 0);

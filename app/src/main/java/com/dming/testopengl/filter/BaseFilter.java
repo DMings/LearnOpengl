@@ -6,7 +6,6 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.dming.testopengl.R;
-import com.dming.testopengl.camera.CameraTex;
 import com.dming.testopengl.utils.ShaderHelper;
 
 import java.nio.FloatBuffer;
@@ -27,34 +26,42 @@ public class BaseFilter implements IShader {
             1, -1.0f, 0f,
             1, 1.0f, 0f,
     };
-    protected int mProgram;
+    public static final float[] TEX_VERTEX = {
+            0, 1,
+            0, 0,
+            1, 0,
+            1, 1,
+    };
 
+    protected int mProgram;
     protected int mPosition;
     protected int mTextureCoordinate;
     protected int mImageOESTexture;
-    protected int mMatrix;
-    protected float[] mModelMatrix = new float[4 * 4];
+    protected int uMvpMatrix;
+    protected int uTexMatrix;
+    protected float[] mMvpMatrix = new float[16];
     protected Context mContext;
 
     public BaseFilter(Context context, int resFrgId) {
         this.mContext = context;
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
         mPosFB = ShaderHelper.arrayToFloatBuffer(VERTEX_POS);
+        mTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX);
         mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, resFrgId);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
         mImageOESTexture = GLES20.glGetUniformLocation(mProgram, "inputImageOESTexture");
-        mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
-        Matrix.setIdentityM(mModelMatrix, 0);
+        uMvpMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
+        uTexMatrix = GLES20.glGetUniformLocation(mProgram, "uTexMatrix");
+        Matrix.setIdentityM(mMvpMatrix, 0);
     }
 
     @Override
-    public void onChange(int width, int height, int orientation) {
-        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
+    public void onChange(int width, int height) {
     }
 
     @Override
-    public void onDraw(int textureId, int x, int y, int width, int height) {
+    public void onDraw(int textureId, float[] texMatrix, int x, int y, int width, int height) {
         GLES20.glUseProgram(mProgram);
         GLES20.glEnableVertexAttribArray(mPosition);
         GLES20.glVertexAttribPointer(mPosition, 3,
@@ -62,7 +69,8 @@ public class BaseFilter implements IShader {
         GLES20.glEnableVertexAttribArray(mTextureCoordinate);
         GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
                 GLES20.GL_FLOAT, false, 0, mTexFB);
-        GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
+        GLES20.glUniformMatrix4fv(uMvpMatrix, 1, false, mMvpMatrix, 0);
+        GLES20.glUniformMatrix4fv(uTexMatrix, 1, false, texMatrix, 0);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
         GLES20.glUniform1i(mImageOESTexture, 0);

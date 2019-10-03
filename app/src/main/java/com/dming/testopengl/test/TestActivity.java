@@ -72,11 +72,11 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void surfaceChanged(int width, int height) {
                 DLog.i("EglHelper surfaceChanged: ");
-                mLineGraph.onChange(width, height, 0);
-                mNoFilter.onChange(width, height, 0);
+                mLineGraph.onChange(width, height);
+                mNoFilter.onChange(width, height);
                 GLES20.glClearColor(1, 1, 1, 1);
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                mLineGraph.onDraw(0, 0, 0, width, height);
+                mLineGraph.onDraw(0, null,0, 0, width, height);
                 FGLUtils.glCheckErr(11);
 
 //                ByteBuffer readByte = ByteBuffer.allocateDirect(w * h * fmt);
@@ -108,7 +108,7 @@ public class TestActivity extends AppCompatActivity {
                         int h = 200;
                         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
                         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture);
-                        mNoFilter.onDraw(mTexture, 0, 0, w, h);
+                        mNoFilter.onDraw(mTexture, null,0, 0, w, h);
                         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
                         FGLUtils.glCheckErr("Runnable");
                     }

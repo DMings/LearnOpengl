@@ -31,12 +31,12 @@ public class LineGraph implements IShader {
     }
 
     @Override
-    public void onChange(int width, int height, int orientation) {
+    public void onChange(int width, int height) {
 
     }
 
     @Override
-    public void onDraw(int textureId, int x, int y, int width, int height) {
+    public void onDraw(int textureId, float[] texMatrix, int x, int y, int width, int height) {
         GLES20.glViewport(x, y, width, height);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glUseProgram(mGraphProgram);

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 
 import com.dming.testopengl.filter.AnimationFilter;
 import com.dming.testopengl.filter.BlurFilter;
@@ -33,13 +34,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     private LuminanceFilter mLuminanceFilter;
     private BlurFilter mBlurFilter;
     private SharpenFilter mSharpenFilter;
-    //    private SmoothFilter mSmoothFilter;
     private BurrFilter mBurrFilter;
-    //    private SubduedLightFilter mSubduedLightFilter;
     private AnimationFilter mAnimationFilter;
     private MultipleFilter mMultipleFilter;
-    //    private DarkenLightFilter mDarkenLightFilter;
-    //    private MosaicFilter mMosaicFilter;
     private SoulFilter mSoulFilter;
     private EdgeFilter mEdgeFilter;
     //
@@ -47,12 +44,16 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     //
     private GLRunnable mGLRunnable;
     private GLSurfaceView mGLSurfaceView;
+    //
+    private int mPageIndex = 0;
+    private float[] mTexMatrix = new float[16];
 
 
     CameraRenderer(GLSurfaceView glSurfaceView, GLRunnable glRunnable) {
         this.mContext = glSurfaceView.getContext();
         this.mGLSurfaceView = glSurfaceView;
         this.mGLRunnable = glRunnable;
+        Matrix.setIdentityM(mTexMatrix, 0);
     }
 
     @Override
@@ -71,24 +72,29 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mMultipleFilter = new MultipleFilter(mContext);
         mSoulFilter = new SoulFilter(mContext);
         mEdgeFilter = new EdgeFilter(mContext);
+
+        if (mPageIndex == 5) {
+            mCurShader = mAnimationFilter;
+            mAnimationFilter.play();
+        }
     }
 
-    public void onSurfaceCreated(int width, int height, int orientation) {
+    public void onSurfaceCreated(int width, int height) {
         if (this.mWidth != width || this.mHeight != height) {
             this.mWidth = width;
             this.mHeight = height;
             int w = mWidth / 3;
             int h = mHeight / 3;
-            mLineGraph.onChange(mWidth, mHeight, orientation);
-            mNoFilter.onChange(w, h, orientation);
-            mLuminanceFilter.onChange(w, h, orientation);
-            mBlurFilter.onChange(w, h, orientation);
-            mSharpenFilter.onChange(mWidth, h, orientation);
-            mBurrFilter.onChange(w, h, orientation);
-            mAnimationFilter.onChange(w, h, orientation);
-            mMultipleFilter.onChange(w, h, orientation);
-            mSoulFilter.onChange(w, h, orientation);
-            mEdgeFilter.onChange(w, h, orientation);
+            mLineGraph.onChange(mWidth, mHeight);
+            mNoFilter.onChange(w, h);
+            mLuminanceFilter.onChange(w, h);
+            mBlurFilter.onChange(w, h);
+            mSharpenFilter.onChange(mWidth, h);
+            mBurrFilter.onChange(w, h);
+            mAnimationFilter.onChange(w, h);
+            mMultipleFilter.onChange(w, h);
+            mSoulFilter.onChange(w, h);
+            mEdgeFilter.onChange(w, h);
         }
     }
 
@@ -109,18 +115,18 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         int h = mHeight / 3;
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 //        mLineGraph.onDraw(mTextureId, 0, 0, mWidth, mHeight);
-        mNoFilter.onDraw(mTextureId, 0, h * 2, w, h + 1);
-        mLuminanceFilter.onDraw(mTextureId, w, 0, w, h);
-        mBurrFilter.onDraw(mTextureId, 0, h, w, h);
-        mSharpenFilter.onDraw(mTextureId, w * 2, h * 2, w, h + 1);
-        mBlurFilter.onDraw(mTextureId, w, h * 2, w, h + 1);
-        mAnimationFilter.onDraw(mTextureId, w * 2, h, w + 1, h);
-        mMultipleFilter.onDraw(mTextureId, w, h, w, h);
-        mSoulFilter.onDraw(mTextureId, 0, 0, w, h);
-        mEdgeFilter.onDraw(mTextureId, w * 2, 0, w + 1, h);
+        mNoFilter.onDraw(mTextureId, mTexMatrix, 0, h * 2, w, h + 1);
+        mLuminanceFilter.onDraw(mTextureId, mTexMatrix, w, 0, w, h);
+        mBurrFilter.onDraw(mTextureId, mTexMatrix, 0, h, w, h);
+        mSharpenFilter.onDraw(mTextureId, mTexMatrix, w * 2, h * 2, w, h + 1);
+        mBlurFilter.onDraw(mTextureId, mTexMatrix, w, h * 2, w, h + 1);
+        mAnimationFilter.onDraw(mTextureId, mTexMatrix, w * 2, h, w + 1, h);
+        mMultipleFilter.onDraw(mTextureId, mTexMatrix, w, h, w, h);
+        mSoulFilter.onDraw(mTextureId, mTexMatrix, 0, 0, w, h);
+        mEdgeFilter.onDraw(mTextureId, mTexMatrix, w * 2, 0, w + 1, h);
 //
         if (mCurShader != null) {
-            mCurShader.onDraw(mTextureId, 0, 0, mWidth, mHeight);
+            mCurShader.onDraw(mTextureId, mTexMatrix, 0, 0, mWidth, mHeight);
         }
 //        DLog.i("time: " + (System.currentTimeMillis() - time));
         int err = GLES20.glGetError();
@@ -129,6 +135,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         }
     }
 
+    public void setTexMatrix(float[] mTexMatrix) {
+        this.mTexMatrix = mTexMatrix;
+    }
 
     private static int createOESTexture() {
         int[] tex = new int[1];
@@ -152,6 +161,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
 
     public void chooseOneShaderOfNine(int index) {
         if (mCurShader == null) {
+            mPageIndex = index;
             if (index == 0) {
                 mCurShader = mNoFilter;
             } else if (index == 1) {
@@ -173,9 +183,10 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
                 mCurShader = mEdgeFilter;
             }
         } else {
+            mPageIndex = -1;
             mCurShader = null;
         }
-        if(index != 5){
+        if (index != 5) {
             mAnimationFilter.pause();
         }
     }
@@ -183,6 +194,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     public void onDestroy() {
         this.mWidth = 0;
         this.mHeight = 0;
+        this.mCurShader = null;
         if (mLineGraph != null) {
             mLineGraph.onDestroy();
             mLineGraph = null;

@@ -1,4 +1,4 @@
-package com.dming.testopengl.test;
+package com.dming.testopengl.filter.test;
 
 import android.content.Context;
 import android.opengl.GLES11Ext;
@@ -8,14 +8,16 @@ import android.opengl.Matrix;
 import com.dming.testopengl.R;
 import com.dming.testopengl.camera.CameraTex;
 import com.dming.testopengl.filter.IShader;
+import com.dming.testopengl.utils.DLog;
 import com.dming.testopengl.utils.ShaderHelper;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-public class NormalFilter implements IShader {
+public class CameraFilter implements IShader {
 
-    protected ShortBuffer mIndexSB;
+    protected final ShortBuffer mIndexSB;
     protected FloatBuffer mTexFB;
     protected FloatBuffer mPosFB;
     protected static final short[] VERTEX_INDEX = {
@@ -32,20 +34,19 @@ public class NormalFilter implements IShader {
 
     protected int mPosition;
     protected int mTextureCoordinate;
-    protected int mImageTexture;
+    protected int mImageOESTexture;
     protected int mMatrix;
     protected float[] mModelMatrix = new float[4 * 4];
-    protected Context mContext;
 
-    public NormalFilter(Context context) {
-        this.mContext = context;
+    public CameraFilter(Context context) {
         mIndexSB = ShaderHelper.arrayToShortBuffer(VERTEX_INDEX);
-        mPosFB = ShaderHelper.arrayToFloatBuffer(VERTEX_POS);
-        mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.frg_normal);
+        mProgram = ShaderHelper.loadProgram(context, R.raw.process_ver, R.raw.camera_frg);
+        DLog.i("mProgram: "+mProgram);
         mPosition = GLES20.glGetAttribLocation(mProgram, "inputPosition");
         mTextureCoordinate = GLES20.glGetAttribLocation(mProgram, "inputTextureCoordinate");
-        mImageTexture = GLES20.glGetUniformLocation(mProgram, "inputImageTexture");
+        mImageOESTexture = GLES20.glGetUniformLocation(mProgram, "inputImageOESTexture");
         mMatrix = GLES20.glGetUniformLocation(mProgram, "inputMatrix");
+        mPosFB = ShaderHelper.arrayToFloatBuffer(VERTEX_POS);
         Matrix.setIdentityM(mModelMatrix, 0);
     }
 
@@ -53,6 +54,7 @@ public class NormalFilter implements IShader {
     public void onChange(int width, int height) {
 //        mTexFB = ShaderHelper.arrayToFloatBuffer(CameraTex.getTexVertexByOrientation(orientation));
     }
+
 
     @Override
     public void onDraw(int textureId, float[] mTexMatrix, int x, int y, int width, int height) {
@@ -65,14 +67,15 @@ public class NormalFilter implements IShader {
                 GLES20.GL_FLOAT, false, 0, mTexFB);
         GLES20.glUniformMatrix4fv(mMatrix, 1, false, mModelMatrix, 0);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
-        GLES20.glUniform1i(mImageTexture, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
+        GLES20.glUniform1i(mImageOESTexture, 0);
         GLES20.glViewport(x, y, width, height);
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, VERTEX_INDEX.length,
                 GLES20.GL_UNSIGNED_SHORT, mIndexSB);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
         GLES20.glDisableVertexAttribArray(mPosition);
         GLES20.glDisableVertexAttribArray(mTextureCoordinate);
+        GLES20.glDisableVertexAttribArray(mImageOESTexture);
         GLES20.glUseProgram(0);
     }
 
