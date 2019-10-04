@@ -183,11 +183,11 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
                 mCurShader = mEdgeFilter;
             }
         } else {
+            if (index != 5 && mPageIndex == 5) {
+                mAnimationFilter.pause();
+            }
             mPageIndex = -1;
             mCurShader = null;
-        }
-        if (index != 5) {
-            mAnimationFilter.pause();
         }
     }
 
