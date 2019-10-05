@@ -20,7 +20,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import static com.dming.testopengl.camera.CameraTex.TEX_VERTEX_90;
 
-public class AnimationFilter extends BaseFilter {
+public class AnimationFilter extends BaseFilter implements IControl {
 
     private int mIsVideo;
     private FloatBuffer mVideoTexFB;
@@ -91,6 +91,7 @@ public class AnimationFilter extends BaseFilter {
         super.onDestroy();
     }
 
+    @Override
     public void play() {
         DLog.i("play>>>" + mPlayer);
         if (mPlayer != null) {
@@ -100,6 +101,7 @@ public class AnimationFilter extends BaseFilter {
         }
     }
 
+    @Override
     public void pause() {
         DLog.i("pause>>>" + mPlayer);
         if (mPlayer != null) {
