@@ -20,7 +20,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import static com.dming.testopengl.camera.CameraTex.TEX_VERTEX_90;
 
-public class AnimationFilter extends BaseFilter implements IControl {
+public class ShowMovieFilter extends BaseFilter {
 
     private int mIsVideo;
     private FloatBuffer mVideoTexFB;
@@ -32,7 +32,7 @@ public class AnimationFilter extends BaseFilter implements IControl {
     private boolean mCanUpdate = false;
     private float[] mIdentityMatrix = new float[4 * 4];
 
-    public AnimationFilter(GLSurfaceView glSurfaceView) {
+    public ShowMovieFilter(GLSurfaceView glSurfaceView) {
         super(glSurfaceView.getContext(), R.raw.animation_frg);
         mIsVideo = GLES20.glGetUniformLocation(mProgram, "isVideo");
         mVideoTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_90);
@@ -91,21 +91,17 @@ public class AnimationFilter extends BaseFilter implements IControl {
         super.onDestroy();
     }
 
-    @Override
-    public void play() {
-        DLog.i("play>>>" + mPlayer);
+    public void playVolume() {
+        DLog.i("playVolume>>>");
         if (mPlayer != null) {
-            if (!mPlayer.isPlaying()) {
-                mPlayer.start();
-            }
+            mPlayer.setVolume(1, 1);
         }
     }
 
-    @Override
-    public void pause() {
-        DLog.i("pause>>>" + mPlayer);
+    public void stopVolume() {
+        DLog.i("stopVolume");
         if (mPlayer != null) {
-            mPlayer.pause();
+            mPlayer.setVolume(0, 0);
         }
     }
 
@@ -143,6 +139,9 @@ public class AnimationFilter extends BaseFilter implements IControl {
             DLog.i("Play Error!!!");
         }
         mPlayer.setLooping(true);
+        //
+        mPlayer.setVolume(0, 0);
+        mPlayer.start();
     }
 
 

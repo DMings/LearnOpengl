@@ -23,10 +23,10 @@ public class GifFilter {
             1, 1.0f, 0f,
     };
     public static final float[] TEX_VERTEX = {
-            1, 0,
-            1, 1,
-            0, 1,
             0, 0,
+            0, 1,
+            1, 1,
+            1, 0,
     };
 
     protected int mProgram;

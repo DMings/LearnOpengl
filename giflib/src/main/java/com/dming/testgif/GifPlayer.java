@@ -18,6 +18,8 @@ public class GifPlayer {
     public interface OnGifListener {
         void start();
 
+        void size(int width, int height);
+
         void update();
 
         void end();
@@ -135,6 +137,9 @@ public class GifPlayer {
                     }
                     if (native_load(mGifPlayerPtr, context != null ? context.getResources().getAssets() : null, gifPath)) {
                         mPlayState = PlayState.PLAYING;
+                        if (mOnGifListener != null) {
+                            mOnGifListener.size(native_get_width(mGifPlayerPtr), native_get_height(mGifPlayerPtr));
+                        }
                         native_start(mGifPlayerPtr, once, mTexture, new Runnable() {
                             @Override
                             public void run() {

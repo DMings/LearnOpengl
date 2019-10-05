@@ -102,23 +102,20 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
                 });
             }
         });
-        DLog.i("chooseCamera run-");
         chooseCamera();
         openCamera();
         if (isCameraOpened()) {
-            DLog.i("setUpPreview run222");
             try {
                 mCamera.setPreviewTexture(mSurfaceTexture);
             } catch (IOException e) {
             }
+            setCameraDisplayOrientation(this, mCamera, mCameraInfo);
             adjustCameraParameters();
-            DLog.i("adjustCameraParameters run333");
         }
     }
 
     @Override
     public void onSurfaceChanged(final int width, final int height) {
-        setCameraDisplayOrientation(this, mCamera, mCameraInfo);
         mCameraRenderer.onSurfaceCreated(width, height);
     }
 
@@ -177,36 +174,13 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         CameraSize suitableSize = getDealCameraSize(mCameraInfo.orientation);
         final CameraSize size = suitableSize.getSrcSize();
         mCameraParameters.setPreviewSize(size.getWidth(), size.getHeight());
-//        mCameraParameters.setPreviewFormat(ImageFormat.NV21);
-//        mCameraParameters.setRotation(calcCameraRotation(mDisplayOrientation));
-//        setRotation()影响的是JPeg的那个PictureCallback，很多时候只是修改这里返回的exif信息，不会真的旋转图像数据。
         setAutoFocusInternal(true);
-//        setFlashInternal(mFlash);
         mCamera.setParameters(mCameraParameters);
-//        int frameSize = size.getWidth() * size.getHeight() * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8;
-//        byte[] bytes = new byte[frameSize];
-//        mCamera.addCallbackBuffer(bytes);
-//        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
-//            @Override
-//            public void onPreviewFrame(byte[] data, Camera camera) {
-////                DLog.i("===onPreviewFrame==="+Thread.currentThread());
-//                if (data != null && mCamera != null) {
-////                        DLog.i("生产: ");
-////                    mCallback.onCopyCamera1Data(data, mCameraInfo.orientation, size.getWidth(), size.getHeight(), getRatio());
-////                        DLog.i("消费: ");
-////                    mCallback.onDealCameraData(mCameraInfo.orientation);
-//                    camera.addCallbackBuffer(data);
-//                } else {
-//                    DLog.i("data null");
-//                }
-//            }
-//        });
         mCamera.startPreview();
     }
 
     private void releaseCamera() {
         if (mCamera != null) {
-//            mCamera.addCallbackBuffer(null);
             mCamera.release();
             mCamera = null;
         }

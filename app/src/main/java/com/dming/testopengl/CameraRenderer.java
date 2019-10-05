@@ -6,7 +6,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
-import com.dming.testopengl.filter.AnimationFilter;
 import com.dming.testopengl.filter.BlurFilter;
 import com.dming.testopengl.filter.BurrFilter;
 import com.dming.testopengl.filter.EdgeFilter;
@@ -15,7 +14,8 @@ import com.dming.testopengl.filter.LineGraph;
 import com.dming.testopengl.filter.LuminanceFilter;
 import com.dming.testopengl.filter.MultipleFilter;
 import com.dming.testopengl.filter.NoFilter;
-import com.dming.testopengl.filter.SharpenFilter;
+import com.dming.testopengl.filter.ShowGifFilter;
+import com.dming.testopengl.filter.ShowMovieFilter;
 import com.dming.testopengl.filter.SoulFilter;
 import com.dming.testopengl.utils.DLog;
 
@@ -33,9 +33,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     private NoFilter mNoFilter;
     private LuminanceFilter mLuminanceFilter;
     private BlurFilter mBlurFilter;
-    private SharpenFilter mSharpenFilter;
+    private ShowGifFilter mShowGifFilter;
     private BurrFilter mBurrFilter;
-    private AnimationFilter mAnimationFilter;
+    private ShowMovieFilter mShowMovieFilter;
     private MultipleFilter mMultipleFilter;
     private SoulFilter mSoulFilter;
     private EdgeFilter mEdgeFilter;
@@ -45,7 +45,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     private GLRunnable mGLRunnable;
     private GLSurfaceView mGLSurfaceView;
     //
-    private int mPageIndex = 0;
+    private int mPageIndex = -1;
     private float[] mTexMatrix = new float[16];
 
 
@@ -66,17 +66,14 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mNoFilter = new NoFilter(mContext);
         mLuminanceFilter = new LuminanceFilter(mContext);
         mBlurFilter = new BlurFilter(mContext);
-        mSharpenFilter = new SharpenFilter(mContext);
+        mShowGifFilter = new ShowGifFilter(mContext);
         mBurrFilter = new BurrFilter(mContext);
-        mAnimationFilter = new AnimationFilter(mGLSurfaceView);
+        mShowMovieFilter = new ShowMovieFilter(mGLSurfaceView);
         mMultipleFilter = new MultipleFilter(mContext);
         mSoulFilter = new SoulFilter(mContext);
         mEdgeFilter = new EdgeFilter(mContext);
 
-        if (mPageIndex == 5) {
-            mCurShader = mAnimationFilter;
-            mAnimationFilter.play();
-        }
+        chooseOneShaderOfNine(mPageIndex);
     }
 
     public void onSurfaceCreated(int width, int height) {
@@ -89,9 +86,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             mNoFilter.onChange(w, h);
             mLuminanceFilter.onChange(w, h);
             mBlurFilter.onChange(w, h);
-            mSharpenFilter.onChange(mWidth, h);
+            mShowGifFilter.onChange(mWidth, h);
             mBurrFilter.onChange(w, h);
-            mAnimationFilter.onChange(w, h);
+            mShowMovieFilter.onChange(w, h);
             mMultipleFilter.onChange(w, h);
             mSoulFilter.onChange(w, h);
             mEdgeFilter.onChange(w, h);
@@ -118,9 +115,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mNoFilter.onDraw(mTextureId, mTexMatrix, 0, h * 2, w, h + 1);
         mLuminanceFilter.onDraw(mTextureId, mTexMatrix, w, 0, w, h);
         mBurrFilter.onDraw(mTextureId, mTexMatrix, 0, h, w, h);
-        mSharpenFilter.onDraw(mTextureId, mTexMatrix, w * 2, h * 2, w, h + 1);
+        mShowGifFilter.onDraw(mTextureId, mTexMatrix, w * 2, h * 2, w, h + 1);
         mBlurFilter.onDraw(mTextureId, mTexMatrix, w, h * 2, w, h + 1);
-        mAnimationFilter.onDraw(mTextureId, mTexMatrix, w * 2, h, w + 1, h);
+        mShowMovieFilter.onDraw(mTextureId, mTexMatrix, w * 2, h, w + 1, h);
         mMultipleFilter.onDraw(mTextureId, mTexMatrix, w, h, w, h);
         mSoulFilter.onDraw(mTextureId, mTexMatrix, 0, 0, w, h);
         mEdgeFilter.onDraw(mTextureId, mTexMatrix, w * 2, 0, w + 1, h);
@@ -167,14 +164,14 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             } else if (index == 1) {
                 mCurShader = mBlurFilter;
             } else if (index == 2) {
-                mCurShader = mSharpenFilter;
+                mCurShader = mShowGifFilter;
             } else if (index == 3) {
                 mCurShader = mBurrFilter;
             } else if (index == 4) {
                 mCurShader = mMultipleFilter;
             } else if (index == 5) {
-                mCurShader = mAnimationFilter;
-                mAnimationFilter.play();
+                mCurShader = mShowMovieFilter;
+                mShowMovieFilter.playVolume();
             } else if (index == 6) {
                 mCurShader = mSoulFilter;
             } else if (index == 7) {
@@ -183,8 +180,8 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
                 mCurShader = mEdgeFilter;
             }
         } else {
-            if (index != 5 && mPageIndex == 5) {
-                mAnimationFilter.pause();
+            if (mPageIndex == 5) {
+                mShowMovieFilter.stopVolume();
             }
             mPageIndex = -1;
             mCurShader = null;
@@ -211,17 +208,17 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             mBlurFilter.onDestroy();
             mBlurFilter = null;
         }
-        if (mSharpenFilter != null) {
-            mSharpenFilter.onDestroy();
-            mSharpenFilter = null;
+        if (mShowGifFilter != null) {
+            mShowGifFilter.onDestroy();
+            mShowGifFilter = null;
         }
         if (mBurrFilter != null) {
             mBurrFilter.onDestroy();
             mBurrFilter = null;
         }
-        if (mAnimationFilter != null) {
-            mAnimationFilter.onDestroy();
-            mAnimationFilter = null;
+        if (mShowMovieFilter != null) {
+            mShowMovieFilter.onDestroy();
+            mShowMovieFilter = null;
         }
         if (mMultipleFilter != null) {
             mMultipleFilter.onDestroy();
