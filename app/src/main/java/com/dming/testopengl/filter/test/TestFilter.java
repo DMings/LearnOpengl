@@ -82,6 +82,11 @@ public class TestFilter implements IShader {
         GLES20.glUseProgram(0);
     }
 
+    @Override
+    public void onDraw(int textureId, float[] verMatrix, float[] texMatrix, int x, int y, int width, int height) {
+
+    }
+
     public void onDestroy() {
         GLES20.glDeleteProgram(mProgram);
     }

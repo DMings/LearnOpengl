@@ -98,11 +98,16 @@ public class BlurFilter implements IShader {
 
     @Override
     public void onDraw(int textureId, float[] texMatrix, int x, int y, int width, int height) {
+        onDraw(textureId, mIdentityMatrix, texMatrix, x, y, width, height);
+    }
+
+    @Override
+    public void onDraw(int textureId, float[] verMatrix, float[] texMatrix, int x, int y, int width, int height) {
         if (isCreateFBO) {
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
             drawOES(textureId, texMatrix, 0, 0, mFBOWidth, mFBOHeight);
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-            draw(mFrameBufferTexture[0], mIdentityMatrix, x, y, width, height);
+            draw(mFrameBufferTexture[0], verMatrix, x, y, width, height);
         } else {
             drawOES(textureId, texMatrix, x, y, width, height);
         }

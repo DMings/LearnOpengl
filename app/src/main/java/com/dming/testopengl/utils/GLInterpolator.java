@@ -19,9 +19,9 @@ public class GLInterpolator {
         mMaxValue = maxValue;
     }
 
-    public GLInterpolator(int timeSpan, float maxValue, float minValue) {
+    public GLInterpolator(int timeSpan, float maxRelativeValue, float minValue) {
         mTimeSpan = timeSpan;
-        mMaxValue = maxValue;
+        mMaxValue = maxRelativeValue;
         mMinValue = minValue;
     }
 

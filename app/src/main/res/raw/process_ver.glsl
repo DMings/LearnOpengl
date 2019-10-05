@@ -9,6 +9,6 @@ uniform mat4 inputMatrix;
 uniform mat4 uTexMatrix;
 
 void main() {
-     gl_Position  = inputPosition * inputMatrix;
+     gl_Position  = inputMatrix * inputPosition;
      textureCoordinate = (uTexMatrix * inputTextureCoordinate).xy;
 }

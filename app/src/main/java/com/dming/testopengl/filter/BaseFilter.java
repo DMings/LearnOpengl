@@ -62,6 +62,11 @@ public class BaseFilter implements IShader {
 
     @Override
     public void onDraw(int textureId, float[] texMatrix, int x, int y, int width, int height) {
+        onDraw(textureId, mMvpMatrix, texMatrix, x, y, width, height);
+    }
+
+    @Override
+    public void onDraw(int textureId, float[] verMatrix, float[] texMatrix, int x, int y, int width, int height) {
         GLES20.glUseProgram(mProgram);
         GLES20.glEnableVertexAttribArray(mPosition);
         GLES20.glVertexAttribPointer(mPosition, 3,
@@ -69,7 +74,7 @@ public class BaseFilter implements IShader {
         GLES20.glEnableVertexAttribArray(mTextureCoordinate);
         GLES20.glVertexAttribPointer(mTextureCoordinate, 2,
                 GLES20.GL_FLOAT, false, 0, mTexFB);
-        GLES20.glUniformMatrix4fv(uMvpMatrix, 1, false, mMvpMatrix, 0);
+        GLES20.glUniformMatrix4fv(uMvpMatrix, 1, false, verMatrix, 0);
         GLES20.glUniformMatrix4fv(uTexMatrix, 1, false, texMatrix, 0);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);

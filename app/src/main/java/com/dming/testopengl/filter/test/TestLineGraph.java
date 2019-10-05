@@ -51,6 +51,11 @@ public class TestLineGraph implements IShader {
     }
 
     @Override
+    public void onDraw(int textureId, float[] verMatrix, float[] texMatrix, int x, int y, int width, int height) {
+
+    }
+
+    @Override
     public void onDestroy() {
         GLES20.glDeleteProgram(mGraphProgram);
     }

@@ -59,7 +59,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         DLog.i("onSurfaceCreated");
-        GLES20.glClearColor(1f, 1f, 1f, 1f);
+        GLES20.glClearColor(0f, 0f, 0f, 1f);
         mTextureId = createOESTexture();
         mGLRunnable.onSurfaceCreated(mTextureId);
         mLineGraph = new LineGraph(mContext);
@@ -123,6 +123,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mEdgeFilter.onDraw(mTextureId, mTexMatrix, w * 2, 0, w + 1, h);
 //
         if (mCurShader != null) {
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
             mCurShader.onDraw(mTextureId, mTexMatrix, 0, 0, mWidth, mHeight);
         }
 //        DLog.i("time: " + (System.currentTimeMillis() - time));

@@ -6,5 +6,7 @@ public interface IShader {
 
     void onDraw(int textureId, float[] texMatrix, int x, int y, int width, int height);
 
+    void onDraw(int textureId, float[] verMatrix, float[] texMatrix, int x, int y, int width, int height);
+
     void onDestroy();
 }
