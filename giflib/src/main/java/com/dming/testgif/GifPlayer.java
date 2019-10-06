@@ -110,6 +110,7 @@ public class GifPlayer {
 
     public void destroy() {
         native_stop(mGifPlayerPtr);
+        mOnGifListener = null;
         mHandler.post(new Runnable() {
             @Override
             public void run() {

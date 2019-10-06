@@ -29,41 +29,29 @@ public class CutApartFilter extends BaseFilter {
                 0, 0,
                 0.333f, 0,
                 0.333f, 1,
-//                0, 0.333f,
-//                0, 0,
-//                1, 0,
-//                1, 0.333f,
         });
         mTexFB2 = ShaderHelper.arrayToFloatBuffer(new float[]{
                 0.333f, 1,
                 0.333f, 0,
                 0.666f, 0,
                 0.666f, 1,
-//                0, 0.666f,
-//                0, 0.334f,
-//                1, 0.334f,
-//                1, 0.666f,
         });
         mTexFB3 = ShaderHelper.arrayToFloatBuffer(new float[]{
                 0.666f, 1,
                 0.666f, 0,
                 1, 0,
                 1, 1,
-//                0, 1,
-//                0, 0.667f,
-//                1, 0.667f,
-//                1, 1,
         });
     }
 
     @Override
     public void onDraw(int textureId, float[] texMatrix, int x, int y, int width, int height) {
         float value = mGLInterpolator.getValue();
-        if (value <= 0.2) {
-            mTranslateY = mDecelerateInterpolator.getInterpolation(1 - value / 0.2f) * 2;
+        if (value <= 0.25) {
+            mTranslateY = mDecelerateInterpolator.getInterpolation(1 - value / 0.25f) * 2;
             mTranslateYY = -2 + mTranslateY;
-        } else if (value >= 0.8) {
-            mTranslateY = -mDecelerateInterpolator.getInterpolation((value - 0.8f) / 0.2f) * 2;
+        } else if (value >= 0.5 && value <= 0.75) {
+            mTranslateY = -mDecelerateInterpolator.getInterpolation((value - 0.5f) / 0.25f) * 2;
             mTranslateYY = 2 + mTranslateY;
         } else {
             mTranslateY = 0;
@@ -87,17 +75,5 @@ public class CutApartFilter extends BaseFilter {
         mTexFB = mTexFB3;
         Matrix.setIdentityM(mMvpMatrix, 0);
         super.onDraw(textureId, mMvpMatrix, texMatrix, x + w + w, y, w, height);
-//        mTexFB = mTexFB1;
-//        int h = height / 3;
-//        Matrix.setIdentityM(mMvpMatrix, 0);
-//        super.onDraw(textureId, mMvpMatrix, texMatrix, x, y, width, h);
-//        //
-//        mTexFB = mTexFB2;
-////        Matrix.translateM(mMvpMatrix, 0, mGLInterpolator.getValue() * 2, 0, 0);
-//        super.onDraw(textureId, mMvpMatrix, texMatrix, x, y + h, width, height - h - h);
-//        //
-//        mTexFB = mTexFB3;
-//        Matrix.setIdentityM(mMvpMatrix, 0);
-//        super.onDraw(textureId, mMvpMatrix, texMatrix, x, y + height - h, width, h);
     }
 }

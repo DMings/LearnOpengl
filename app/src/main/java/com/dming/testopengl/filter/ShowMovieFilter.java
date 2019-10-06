@@ -148,10 +148,11 @@ public class ShowMovieFilter extends BaseFilter {
     private void release() {
         DLog.i("release>>>" + mPlayer);
         mPlayer.stop();
+        SurfaceTexture surfaceTexture = mSurfaceTexture;
         if (mSurfaceTexture != null) {
-            mSurfaceTexture.setOnFrameAvailableListener(null);
-            mSurfaceTexture.release();
             mSurfaceTexture = null;
+            surfaceTexture.setOnFrameAvailableListener(null);
+            surfaceTexture.release();
         }
         mPlayer.release();
         mSurface.release();
