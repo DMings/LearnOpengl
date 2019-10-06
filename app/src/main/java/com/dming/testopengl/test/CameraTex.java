@@ -1,4 +1,4 @@
-package com.dming.testopengl.camera;
+package com.dming.testopengl.test;
 
 public class CameraTex {
 

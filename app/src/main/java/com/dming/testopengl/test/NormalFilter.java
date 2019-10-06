@@ -1,12 +1,10 @@
 package com.dming.testopengl.test;
 
 import android.content.Context;
-import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.dming.testopengl.R;
-import com.dming.testopengl.camera.CameraTex;
 import com.dming.testopengl.filter.IShader;
 import com.dming.testopengl.utils.ShaderHelper;
 

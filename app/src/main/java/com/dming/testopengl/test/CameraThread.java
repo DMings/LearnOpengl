@@ -1,4 +1,4 @@
-package com.dming.testopengl.camera;
+package com.dming.testopengl.test;
 
 import android.os.Handler;
 import android.os.HandlerThread;

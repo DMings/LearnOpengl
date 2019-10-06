@@ -13,7 +13,7 @@ import com.dming.testopengl.filter.IShader;
 import com.dming.testopengl.filter.LineGraph;
 import com.dming.testopengl.filter.LuminanceFilter;
 import com.dming.testopengl.filter.MultipleFilter;
-import com.dming.testopengl.filter.NoFilter;
+import com.dming.testopengl.filter.CutApartFilter;
 import com.dming.testopengl.filter.ShowGifFilter;
 import com.dming.testopengl.filter.ShowMovieFilter;
 import com.dming.testopengl.filter.SoulFilter;
@@ -30,7 +30,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     private int mWidth, mHeight;
 
     private LineGraph mLineGraph;
-    private NoFilter mNoFilter;
+    private CutApartFilter mCutApartFilter;
     private LuminanceFilter mLuminanceFilter;
     private BlurFilter mBlurFilter;
     private ShowGifFilter mShowGifFilter;
@@ -63,7 +63,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mTextureId = createOESTexture();
         mGLRunnable.onSurfaceCreated(mTextureId);
         mLineGraph = new LineGraph(mContext);
-        mNoFilter = new NoFilter(mContext);
+        mCutApartFilter = new CutApartFilter(mContext);
         mLuminanceFilter = new LuminanceFilter(mContext);
         mBlurFilter = new BlurFilter(mContext);
         mShowGifFilter = new ShowGifFilter(mContext);
@@ -83,7 +83,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             int w = mWidth / 3;
             int h = mHeight / 3;
             mLineGraph.onChange(mWidth, mHeight);
-            mNoFilter.onChange(w, h);
+            mCutApartFilter.onChange(w, h);
             mLuminanceFilter.onChange(w, h);
             mBlurFilter.onChange(w, h);
             mShowGifFilter.onChange(mWidth, h);
@@ -112,7 +112,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         int h = mHeight / 3;
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 //        mLineGraph.onDraw(mTextureId, 0, 0, mWidth, mHeight);
-        mNoFilter.onDraw(mTextureId, mTexMatrix, 0, h * 2, w, h + 1);
+        mCutApartFilter.onDraw(mTextureId, mTexMatrix, 0, h * 2, w, h + 1);
         mLuminanceFilter.onDraw(mTextureId, mTexMatrix, w, 0, w, h);
         mBurrFilter.onDraw(mTextureId, mTexMatrix, 0, h, w, h);
         mShowGifFilter.onDraw(mTextureId, mTexMatrix, w * 2, h * 2, w, h + 1);
@@ -123,7 +123,6 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         mEdgeFilter.onDraw(mTextureId, mTexMatrix, w * 2, 0, w + 1, h);
 //
         if (mCurShader != null) {
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
             mCurShader.onDraw(mTextureId, mTexMatrix, 0, 0, mWidth, mHeight);
         }
 //        DLog.i("time: " + (System.currentTimeMillis() - time));
@@ -161,7 +160,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         if (mCurShader == null) {
             mPageIndex = index;
             if (index == 0) {
-                mCurShader = mNoFilter;
+                mCurShader = mCutApartFilter;
             } else if (index == 1) {
                 mCurShader = mBlurFilter;
             } else if (index == 2) {
@@ -197,9 +196,9 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             mLineGraph.onDestroy();
             mLineGraph = null;
         }
-        if (mNoFilter != null) {
-            mNoFilter.onDestroy();
-            mNoFilter = null;
+        if (mCutApartFilter != null) {
+            mCutApartFilter.onDestroy();
+            mCutApartFilter = null;
         }
         if (mLuminanceFilter != null) {
             mLuminanceFilter.onDestroy();

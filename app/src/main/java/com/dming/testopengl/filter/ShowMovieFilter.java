@@ -18,7 +18,7 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import static com.dming.testopengl.camera.CameraTex.TEX_VERTEX_90;
+import static com.dming.testopengl.test.CameraTex.TEX_VERTEX_90;
 
 public class ShowMovieFilter extends BaseFilter {
 

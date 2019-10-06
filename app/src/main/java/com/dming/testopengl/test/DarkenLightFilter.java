@@ -1,4 +1,4 @@
-package com.dming.testopengl.filter.test;
+package com.dming.testopengl.test;
 
 import android.content.Context;
 

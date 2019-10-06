@@ -17,7 +17,7 @@ public class ShowGifFilter extends BaseFilter implements GifPlayer.OnGifListener
     private float mGifRatio;
 
     public ShowGifFilter(Context context) {
-        super(context, R.raw.process_frg);
+        super(context, R.raw.sharpen_frg);
         mTexture = FGLUtils.createTexture();
         mGifFilter = new GifFilter(context);
         mGifPlayer = new GifPlayer(mTexture);
