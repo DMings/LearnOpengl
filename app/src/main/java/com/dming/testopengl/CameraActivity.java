@@ -47,12 +47,6 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (getPackageManager().checkPermission(Manifest.permission.CAMERA, getPackageName())
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.CAMERA}, 666);
-            }
-        }
         mGLSurfaceView = findViewById(R.id.gl_show);
         mGLSurfaceView.setEGLContextClientVersion(2);
         mCameraRenderer = new CameraRenderer(mGLSurfaceView, this);
@@ -133,12 +127,12 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
                 if (isCameraOpened()) {
                     mCamera.stopPreview();
                 }
+                releaseCamera();
+                mCameraRenderer.onDestroy();
                 if (mSurfaceTexture != null) {
                     mSurfaceTexture.release();
                     mSurfaceTexture = null;
                 }
-                releaseCamera();
-                mCameraRenderer.onDestroy();
             }
         });
         mGLSurfaceView.onPause();
@@ -295,21 +289,4 @@ public class CameraActivity extends AppCompatActivity implements CameraRenderer.
         DLog.i("suitableSize>" + cSize.toString());
         return cSize;
     }
-
-    @Override
-    protected void onDestroy() {
-        DLog.e("onDestroy========================================>>>");
-        mGLSurfaceView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                if (mSurfaceTexture != null) {
-                    mSurfaceTexture.setOnFrameAvailableListener(null);
-                    mSurfaceTexture = null;
-                }
-                mCameraRenderer.onDestroy();
-            }
-        });
-        super.onDestroy();
-    }
-
 }

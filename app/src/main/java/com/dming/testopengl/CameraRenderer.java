@@ -8,12 +8,11 @@ import android.opengl.Matrix;
 
 import com.dming.testopengl.filter.BlurFilter;
 import com.dming.testopengl.filter.BurrFilter;
+import com.dming.testopengl.filter.CutApartFilter;
 import com.dming.testopengl.filter.EdgeFilter;
 import com.dming.testopengl.filter.IShader;
-import com.dming.testopengl.filter.LineGraph;
 import com.dming.testopengl.filter.LuminanceFilter;
 import com.dming.testopengl.filter.MultipleFilter;
-import com.dming.testopengl.filter.CutApartFilter;
 import com.dming.testopengl.filter.ShowGifFilter;
 import com.dming.testopengl.filter.ShowMovieFilter;
 import com.dming.testopengl.filter.SoulFilter;
@@ -29,7 +28,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
     private int mTextureId;
     private int mWidth, mHeight;
 
-    private LineGraph mLineGraph;
+    //    private LineGraph mLineGraph;
     private CutApartFilter mCutApartFilter;
     private LuminanceFilter mLuminanceFilter;
     private BlurFilter mBlurFilter;
@@ -62,7 +61,7 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         GLES20.glClearColor(0f, 0f, 0f, 1f);
         mTextureId = createOESTexture();
         mGLRunnable.onSurfaceCreated(mTextureId);
-        mLineGraph = new LineGraph(mContext);
+//        mLineGraph = new LineGraph(mContext);
         mCutApartFilter = new CutApartFilter(mContext);
         mLuminanceFilter = new LuminanceFilter(mContext);
         mBlurFilter = new BlurFilter(mContext);
@@ -82,11 +81,11 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
             this.mHeight = height;
             int w = mWidth / 3;
             int h = mHeight / 3;
-            mLineGraph.onChange(mWidth, mHeight);
+//            mLineGraph.onChange(mWidth, mHeight);
             mCutApartFilter.onChange(w, h);
             mLuminanceFilter.onChange(w, h);
             mBlurFilter.onChange(w, h);
-            mShowGifFilter.onChange(mWidth, h);
+            mShowGifFilter.onChange(w, h);
             mBurrFilter.onChange(w, h);
             mShowMovieFilter.onChange(w, h);
             mMultipleFilter.onChange(w, h);
@@ -192,10 +191,10 @@ public class CameraRenderer implements GLSurfaceView.Renderer {
         this.mWidth = 0;
         this.mHeight = 0;
         this.mCurShader = null;
-        if (mLineGraph != null) {
-            mLineGraph.onDestroy();
-            mLineGraph = null;
-        }
+//        if (mLineGraph != null) {
+//            mLineGraph.onDestroy();
+//            mLineGraph = null;
+//        }
         if (mCutApartFilter != null) {
             mCutApartFilter.onDestroy();
             mCutApartFilter = null;

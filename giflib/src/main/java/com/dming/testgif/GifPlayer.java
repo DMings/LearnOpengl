@@ -116,17 +116,22 @@ public class GifPlayer {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mEglHelper.destroyEgl();
-                mSurfaceTexture.release();
-                mSurface.release();
-                //
                 native_release(mGifPlayerPtr);
                 mGifPlayerPtr = 0;
                 mHandlerThread.quit();
                 mHandler = null;
                 mHandlerThread = null;
+                //
+                mEglHelper.destroyEgl();
+                mSurfaceTexture.release();
+                mSurface.release();
             }
         });
+//        try {
+//            mHandlerThread.join();
+//        } catch (InterruptedException e) {
+////            e.printStackTrace();
+//        }
     }
 
     private boolean play(final boolean once, final Context context, final String gifPath) {

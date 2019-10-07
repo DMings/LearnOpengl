@@ -17,7 +17,6 @@ public class LauncherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 getPackageManager().checkPermission(Manifest.permission.CAMERA, getPackageName())
                         != PackageManager.PERMISSION_GRANTED) {

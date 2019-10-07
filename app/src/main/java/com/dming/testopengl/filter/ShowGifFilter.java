@@ -44,8 +44,8 @@ public class ShowGifFilter extends BaseFilter implements GifPlayer.OnGifListener
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mGifPlayer.destroy();
         mGifFilter.onDestroy();
+        mGifPlayer.destroy();
     }
 
     @Override
