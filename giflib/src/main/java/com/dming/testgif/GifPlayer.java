@@ -3,7 +3,9 @@ package com.dming.testgif;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.SurfaceTexture;
+import android.opengl.EGL14;
 import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -144,8 +146,7 @@ public class GifPlayer {
                         native_start(mGifPlayerPtr, once, mTexture, new Runnable() {
                             @Override
                             public void run() {
-                                FGLUtils.glCheckErr("test down");
-                                mEglHelper.swapBuffers();
+//                                mEglHelper.swapBuffers();
                                 if (mOnGifListener != null) {
                                     mOnGifListener.update();
                                 }
