@@ -1,15 +1,12 @@
 package com.dming.testopengl;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -19,7 +16,6 @@ import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 
-import com.dming.testopengl.camera.CameraSize;
 import com.dming.testopengl.utils.DLog;
 
 import java.io.IOException;

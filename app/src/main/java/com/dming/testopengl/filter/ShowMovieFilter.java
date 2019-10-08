@@ -18,8 +18,6 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import static com.dming.testopengl.test.CameraTex.TEX_VERTEX_90;
-
 public class ShowMovieFilter extends BaseFilter {
 
     private int mIsVideo;
@@ -35,7 +33,12 @@ public class ShowMovieFilter extends BaseFilter {
     public ShowMovieFilter(GLSurfaceView glSurfaceView) {
         super(glSurfaceView.getContext(), R.raw.animation_frg);
         mIsVideo = GLES20.glGetUniformLocation(mProgram, "isVideo");
-        mVideoTexFB = ShaderHelper.arrayToFloatBuffer(TEX_VERTEX_90);
+        mVideoTexFB = ShaderHelper.arrayToFloatBuffer(new float[]{
+                0f, 1f,
+                1f, 1f,
+                1f, 0f,
+                0f, 0f,
+        });
         initPlayer(glSurfaceView);
         Matrix.setIdentityM(mIdentityMatrix, 0);
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dming.testopengl.camera;
+package com.dming.testopengl;
 
 import android.support.annotation.NonNull;
 
