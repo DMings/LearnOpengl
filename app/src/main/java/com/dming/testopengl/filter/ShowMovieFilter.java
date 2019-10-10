@@ -33,11 +33,15 @@ public class ShowMovieFilter extends BaseFilter {
     public ShowMovieFilter(GLSurfaceView glSurfaceView) {
         super(glSurfaceView.getContext(), R.raw.animation_frg);
         mIsVideo = GLES20.glGetUniformLocation(mProgram, "isVideo");
+        // 一般编/解码器都有16位对齐的处理（有未经证实的说法，也存在32位、64位对齐的），否则会产生绿边问题。
+        // 由于MediaPlayer在某些机型硬解码出现数据对齐问题，产生绿边，MediaPlayer是高级API，无法解决；
+        // 这里投机不显示边缘，个人认为要更好解决就是算图像宽度是不是16的倍数，最好32倍数；然后截取
+        // 这里就是简单截取，0.1 - 0.9
         mVideoTexFB = ShaderHelper.arrayToFloatBuffer(new float[]{
-                0f, 1f,
-                1f, 1f,
-                1f, 0f,
-                0f, 0f,
+                0.1f, 1f,
+                0.9f, 1f,
+                0.9f, 0f,
+                0.1f, 0f,
         });
         initPlayer(glSurfaceView);
         Matrix.setIdentityM(mIdentityMatrix, 0);
@@ -81,6 +85,8 @@ public class ShowMovieFilter extends BaseFilter {
             GLES20.glDisableVertexAttribArray(mPosition);
             GLES20.glDisableVertexAttribArray(mTextureCoordinate);
             GLES20.glUseProgram(0);
+
+            GLES20.glDisable(GLES20.GL_BLEND);
         } else {
             super.onDraw(textureId, texMatrix, x, y, width, height);
         }

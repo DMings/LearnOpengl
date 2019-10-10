@@ -39,6 +39,7 @@ public class ShowGifFilter extends BaseFilter implements GifPlayer.OnGifListener
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);// 后面透明
         super.onDraw(textureId, texMatrix, x, y, width, height);
         mGifFilter.onDraw(mTexture, x, y, (int) (mGifRatio * height / 3), height / 3);
+        GLES20.glDisable(GLES20.GL_BLEND);
     }
 
     @Override
